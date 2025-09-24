@@ -1,0 +1,10 @@
+# Agri-Access Banking Credit Model Requirements
+# Minimal dependencies for production banking model
+
+# Core Python libraries for banking credit model
+numpy>=1.21.0
+
+# Standard library (no additional dependencies required)
+# The banking_credit_model.py uses only standard Python libraries:
+# - sys, json, math, datetime (built-in)
+# - Dict, List from typing (built-in in Python 3.9+)

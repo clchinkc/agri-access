@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Agri-Access: Advanced Agricultural Credit Platform</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2c5234">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Agri-Access">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Agri-Access Styles -->
+    <link rel="stylesheet" href="shared.css" />
+    <link rel="stylesheet" href="mobile.css" />
+</head>
+<body>
+    <div class="mobile-header">
+        <div class="mobile-header-content">
+            <h1>🛰️🌦️ Agri-Access</h1>
+            <p>AI-Powered Agricultural Credit Scoring</p>
+            <button onclick="toggleDesktopInterface()" class="desktop-btn">
+                💻 Desktop View
+            </button>
+        </div>
+        <div class="mobile-subtitle">
+            Satellite Vegetation + Real-Time Weather + Government Data + Payment Analysis
+        </div>
+    </div>
+
+    <!-- Mobile Bank Workflow -->
+    <div class="mobile-workflow">
+        <div class="mobile-workflow-header">
+            <h2>🏦 Credit Analysis Workflow</h2>
+            <p>Bank Staff Processing Flow</p>
+        </div>
+        
+        <div class="mobile-workflow-steps">
+            <div class="mobile-workflow-step">
+                <div class="mobile-workflow-status active" id="mobileWorkflowStatus1">1</div>
+                <div class="mobile-workflow-content">
+                    <div class="mobile-workflow-title">Data Collection</div>
+                    <div class="mobile-workflow-detail">✅ Enter farmer information and location details</div>
+                </div>
+            </div>
+            
+            <div class="mobile-workflow-step">
+                <div class="mobile-workflow-status" id="mobileWorkflowStatus2">2</div>
+                <div class="mobile-workflow-content">
+                    <div class="mobile-workflow-title">Satellite Analysis</div>
+                    <div class="mobile-workflow-detail">🛰️ Process NASA GFSAD, MODIS & Google Earth Engine data</div>
+                </div>
+            </div>
+            
+            <div class="mobile-workflow-step">
+                <div class="mobile-workflow-status" id="mobileWorkflowStatus3">3</div>
+                <div class="mobile-workflow-content">
+                    <div class="mobile-workflow-title">Risk Assessment</div>
+                    <div class="mobile-workflow-detail">🌦️ Analyze weather patterns, soil conditions & geographic factors</div>
+                </div>
+            </div>
+            
+            <div class="mobile-workflow-step">
+                <div class="mobile-workflow-status" id="mobileWorkflowStatus4">4</div>
+                <div class="mobile-workflow-content">
+                    <div class="mobile-workflow-title">Credit Scoring</div>
+                    <div class="mobile-workflow-detail">🤖 Generate ICICI/Kenya methodology-based score (300-850)</div>
+                </div>
+            </div>
+            
+            <div class="mobile-workflow-step">
+                <div class="mobile-workflow-status" id="mobileWorkflowStatus5">5</div>
+                <div class="mobile-workflow-content">
+                    <div class="mobile-workflow-title">Decision</div>
+                    <div class="mobile-workflow-detail">📋 Provide loan terms, approval probability & recommendations</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Farm Information Section -->
+    <div class="mobile-section">
+        <h2 class="mobile-section-title">📍 Farm Information</h2>
+        
+        <div class="mobile-form-group">
+            <label for="farmerName">Farmer Name</label>
+            <input type="text" id="farmerName" placeholder="e.g., Ibu Siti" value="Ibu Siti Nurhasanah">
+        </div>
+        
+        <div class="mobile-form-group">
+            <label for="latitude">Latitude</label>
+            <input type="number" id="latitude" step="0.0001" placeholder="-6.7749" value="-6.7749">
+        </div>
+        
+        <div class="mobile-form-group">
+            <label for="longitude">Longitude</label>
+            <input type="number" id="longitude" step="0.0001" placeholder="107.1389" value="107.1389">
+        </div>
+        
+        <div class="mobile-form-group">
+            <label for="farmSize">Farm Size (hectares)</label>
+            <input type="number" id="farmSize" step="0.1" placeholder="1.5" value="1.5">
+        </div>
+        
+        <div class="mobile-form-group">
+            <label for="primaryCrop">Primary Crop</label>
+            <select id="primaryCrop">
+                <option value="rice">Rice (Padi)</option>
+                <option value="palm oil">Palm Oil (Kelapa Sawit)</option>
+                <option value="coffee">Coffee (Kopi)</option>
+                <option value="cocoa">Cocoa (Kakao)</option>
+                <option value="rubber">Rubber (Karet)</option>
+            </select>
+        </div>
+        
+        <div class="mobile-demo-locations">
+            <h4>🎯 Test Farm Locations</h4>
+            <button class="mobile-demo-btn" onclick="loadDemoLocation('siti')">🌦️ West Java Rice</button>
+            <button class="mobile-demo-btn" onclick="loadDemoLocation('budi')">🛰️ Sumatra Palm Oil</button>
+            <button class="mobile-demo-btn" onclick="loadDemoLocation('ratna')">☕ Central Java Coffee</button>
+            <div class="mobile-demo-note">
+                Different crops and climate conditions for testing
+            </div>
+        </div>
+        
+        <button class="mobile-analyze-btn" id="analyzeButton" onclick="analyzeWithRealNASAData()">
+            🚀 Analyze Credit Score
+        </button>
+    </div>
+
+    <!-- Mobile Map Section -->
+    <div class="mobile-map-section">
+        <div class="mobile-map-container">
+            <div id="map"></div>
+            
+            <div class="loading-overlay" id="mapLoading" style="display: none;">
+                <div class="loading-content">
+                    <div class="loading-spinner"></div>
+                    <h4 id="loadingTitle">Analyzing Farm Credit Score</h4>
+                    <p id="loadingStatus">Processing satellite data...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Current Weather Panel -->
+    <div id="currentWeatherPanel" class="mobile-weather-panel" style="display: none;">
+        <h3>🌦️ Current Conditions</h3>
+        <div class="mobile-weather-grid">
+            <div class="mobile-weather-item">
+                <span class="weather-label">Temperature:</span>
+                <span class="weather-value" id="liveTemp">---</span>
+            </div>
+            <div class="mobile-weather-item">
+                <span class="weather-label">Humidity:</span>
+                <span class="weather-value" id="liveHumidity">---</span>
+            </div>
+            <div class="mobile-weather-item">
+                <span class="weather-label">Conditions:</span>
+                <span class="weather-value" id="liveConditions">---</span>
+            </div>
+            <div class="mobile-weather-item">
+                <span class="weather-label">Risk Level:</span>
+                <span class="weather-value" id="liveRisk">---</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Satellite Images Section -->
+    <div class="mobile-satellite-section">
+        <div class="mobile-satellite-title">
+            📸 Satellite & Weather Images
+        </div>
+        <div id="satelliteImagesGrid" class="mobile-satellite-grid">
+            <div class="mobile-satellite-placeholder">
+                <div class="mobile-satellite-icon">🛰️🌦️🤖</div>
+                <strong>Advanced Analytics Ready</strong><br>
+                Click "Analyze Credit Score" to view satellite imagery and weather data analysis
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile ML Inputs Section -->
+    <div id="mlInputsSection" class="mobile-ml-section" style="display: none;">
+        <h2 class="mobile-section-title">📥 Banking Model Inputs</h2>
+        <div class="mobile-ml-description">
+            <p>These are the features used by the banking credit model:</p>
+        </div>
+        <div id="modelInputs" class="mobile-input-features">
+            <!-- Input features will be populated -->
+        </div>
+    </div>
+
+    <!-- Mobile Results Section -->
+    <div class="mobile-results">
+        <div class="mobile-results-header">
+            <h2>📊 Credit Analysis Results</h2>
+            <p>AI-Powered Banking Decision Support</p>
+        </div>
+        
+        <div id="successResults" class="hidden">
+            <div class="mobile-credit-score">
+                <div class="mobile-score-number" id="scoreNumber">---</div>
+                <div class="mobile-score-status" id="scoreStatus">Based on Real Data</div>
+                <div id="scoreBreakdown" class="mobile-score-breakdown" style="display: none;">
+                    <div class="mobile-breakdown-item">
+                        <span class="breakdown-label">🏦 Banking Score:</span>
+                        <span class="breakdown-value" id="satelliteContrib">---</span>
+                    </div>
+                    <div class="mobile-breakdown-item">
+                        <span class="breakdown-label">🌦️ Weather Input:</span>
+                        <span class="breakdown-value" id="weatherContrib">---</span>
+                    </div>
+                    <div class="mobile-breakdown-item">
+                        <span class="breakdown-label">💳 Payment APIs:</span>
+                        <span class="breakdown-value" id="paymentContrib">---</span>
+                    </div>
+                    <div class="mobile-breakdown-item">
+                        <span class="breakdown-label">🏛️ Government APIs:</span>
+                        <span class="breakdown-value" id="govContrib">---</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mobile-analysis-result" id="vegetationSection" style="display: none;">
+                <h4>🌿 Vegetation Indices (Raw Measurements)</h4>
+                <div class="mobile-data-row">
+                    <span class="data-label">NDVI (Vegetation Index):</span>
+                    <span class="data-value" id="ndviValue">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">EVI (Enhanced Index):</span>
+                    <span class="data-value" id="eviValue">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">SAVI (Soil-Adjusted Index):</span>
+                    <span class="data-value" id="saviValue">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">NDMI (Moisture Index):</span>
+                    <span class="data-value" id="ndmiValue">---</span>
+                </div>
+            </div>
+            
+            <div class="mobile-analysis-result" id="weatherAnalysisSection" style="display: none;">
+                <h4>🌦️ Weather Measurements</h4>
+                <div class="mobile-data-row">
+                    <span class="data-label">Current Temperature:</span>
+                    <span class="data-value" id="currentTemp">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">Humidity:</span>
+                    <span class="data-value" id="currentHumidity">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">Precipitation (7-day):</span>
+                    <span class="data-value" id="weeklyPrecip">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">Weather Data Sources:</span>
+                    <span class="data-value" id="weatherDataSources">---</span>
+                </div>
+            </div>
+            
+            <div class="mobile-analysis-result">
+                <h4>📡 Data Sources Status</h4>
+                <div class="mobile-data-row">
+                    <span class="data-label">🌍 Google Earth Engine:</span>
+                    <span class="data-value" id="geeResult">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">🗺️ NASA Cropland Data:</span>
+                    <span class="data-value" id="gfsadResult">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">🌱 NASA Vegetation Data:</span>
+                    <span class="data-value" id="modisResult">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">🌦️ Weather APIs:</span>
+                    <span class="data-value" id="weatherApiResult">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">🏛️ Government APIs:</span>
+                    <span class="data-value" id="govApiResult">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">💳 Payment APIs:</span>
+                    <span class="data-value" id="paymentApiResult">---</span>
+                </div>
+            </div>
+            
+            <div class="mobile-analysis-result" id="paymentReadinessSection" style="display: none;">
+                <h4>💳 Payment Data Analysis (Simulated)</h4>
+                <div class="mobile-data-row">
+                    <span class="data-label">Integration Analysis:</span>
+                    <span class="data-value" id="paymentDataAnalysis">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">Data Sources Analyzed:</span>
+                    <span class="data-value" id="paymentDataSources">---</span>
+                </div>
+            </div>
+            
+            <div class="mobile-analysis-result" id="integratedInsightsSection" style="display: none;">
+                <h4>⚖️ Risk Assessment</h4>
+                <div class="mobile-data-row">
+                    <span class="data-label">Total Data Sources:</span>
+                    <span class="data-value" id="totalDataSources">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">Analysis Scope:</span>
+                    <span class="data-value" id="analysisScope">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">Data Integration Status:</span>
+                    <span class="data-value" id="integrationStatus">---</span>
+                </div>
+            </div>
+
+            <div class="mobile-analysis-result" id="crossValidationSection" style="display: none;">
+                <h4>📋 Data Quality Assessment</h4>
+                <div id="validationResults">
+                    <!-- Cross-validation results will be populated -->
+                </div>
+            </div>
+            
+            <div class="mobile-analysis-result" id="creditAnalysisSection">
+                <h4>🏦 Banking Credit Analysis</h4>
+                <div class="mobile-data-row">
+                    <span class="data-label">Risk Level:</span>
+                    <span class="data-value" id="riskLevel">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">Max Loan Amount:</span>
+                    <span class="data-value" id="maxLoanAmount">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">Interest Rate:</span>
+                    <span class="data-value" id="interestRate">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">Approval Probability:</span>
+                    <span class="data-value" id="approvalProbability">---</span>
+                </div>
+            </div>
+            
+            <div class="mobile-analysis-result" id="keyFactorsSection">
+                <h4>🔍 Credit Factors (Banking Model)</h4>
+                <div class="mobile-explanation-flow">
+                    <div class="mobile-process-indicator">
+                        <span class="mobile-process-arrow">📥 → 🏦 Banking Model → 📤</span>
+                        <span class="mobile-process-description">Farm data processed by banking credit model</span>
+                    </div>
+                    <div id="topFactors" class="mobile-output-factors">
+                        <!-- Factors will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mobile-analysis-result" id="improvementSection">
+                <h4>💡 Improvement Suggestions</h4>
+                <div id="improvementSuggestions">
+                    <!-- Suggestions will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <div id="failureResults" class="hidden">
+            <div class="mobile-analysis-result">
+                <h4>❌ Satellite Data Access Failed</h4>
+                <div class="mobile-data-row">
+                    <span class="data-label">API Status:</span>
+                    <span class="data-value error" id="apiError">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">GFSAD Error:</span>
+                    <span class="data-value error" id="gfsadError">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">MODIS Error:</span>
+                    <span class="data-value error" id="modisError">---</span>
+                </div>
+                <div class="mobile-data-row">
+                    <span class="data-label">Recommendation:</span>
+                    <span class="data-value" id="recommendation">---</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="defaultInfo">
+            <div class="mobile-analysis-result">
+                <h4>🎯 How Agricultural Credit Scoring Works</h4>
+                <p class="mobile-info-text">
+                    <strong>🛰️ Satellite Analysis:</strong><br>
+                    • Google Earth Engine: High-resolution crop health monitoring<br>
+                    • NASA GFSAD: Precise cropland classification<br>
+                    • NASA MODIS: Vegetation trends and seasonal patterns<br><br>
+                    
+                    <strong>🌦️ Weather Risk Assessment:</strong><br>
+                    • Real-time temperature and precipitation data<br>
+                    • 7-day weather forecasts for crop planning<br>
+                    • Drought risk monitoring and alerts<br>
+                    • Climate suitability analysis for specific crops<br><br>
+                    
+                    <strong>🏛️ Official Data Validation:</strong><br>
+                    • Indonesian government agricultural statistics<br>
+                    • Market prices and crop production data<br>
+                    • Digital payment ecosystem readiness<br><br>
+                    
+                    <strong>🤖 AI Credit Scoring:</strong><br>
+                    • Explainable machine learning algorithms<br>
+                    • Risk assessment based on multiple data sources<br>
+                    • Personalized recommendations for farmers
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mobile Image Modal -->
+    <div id="imageModal" class="mobile-image-modal">
+        <div class="mobile-image-modal-content">
+            <div class="mobile-image-modal-header">
+                <h3 class="mobile-image-modal-title" id="modalTitle">🛰️ Real NASA Satellite Image</h3>
+                <button class="mobile-close-modal" onclick="closeImageModal()">&times;</button>
+            </div>
+            
+            <div class="mobile-modal-image-container">
+                <img id="modalImage" class="mobile-modal-satellite-image" src="" alt="Satellite Image">
+            </div>
+            
+            <div class="mobile-modal-image-info">
+                <div class="mobile-modal-info-grid">
+                    <div class="mobile-modal-info-item">
+                        <span class="modal-info-label">Satellite Dataset</span>
+                        <span class="modal-info-value" id="modalDataset">---</span>
+                    </div>
+                    <div class="mobile-modal-info-item">
+                        <span class="modal-info-label">Resolution</span>
+                        <span class="modal-info-value" id="modalResolution">---</span>
+                    </div>
+                    <div class="mobile-modal-info-item">
+                        <span class="modal-info-label">Data Source</span>
+                        <span class="modal-info-value" id="modalSource">---</span>
+                    </div>
+                    <div class="mobile-modal-info-item">
+                        <span class="modal-info-label">Retrieval Status</span>
+                        <span class="modal-info-value" id="modalStatus">---</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Agri-Access Shared Libraries -->
+    <script src="shared.js"></script>
+    <!-- Agri-Access Application -->
+    <script src="app.js"></script>
+</body>
+</html>
