@@ -734,7 +734,7 @@ function displayVegetationData(enhancedFeatures) {
 }
 
 function displayDataQualityResults(analysisResults) {
-    const crossValidationSection = document.getElementById('crossValidationSection');
+    const dataQualitySection = document.getElementById('dataQualitySection');
     const validationContainer = document.getElementById('validationResults');
     
     let validationHtml = '';
@@ -775,7 +775,7 @@ function displayDataQualityResults(analysisResults) {
     }
     
     validationContainer.innerHTML = validationHtml;
-    crossValidationSection.style.display = 'block';
+    dataQualitySection.style.display = 'block';
 }
 
 function clearResults() {
@@ -785,7 +785,6 @@ function clearResults() {
     
     // Reset sections
     document.getElementById('vegetationSection').style.display = 'none';
-    document.getElementById('crossValidationSection').style.display = 'none';
     
     // Clear map data and reset grid
     coverageRectangles.forEach(rect => map.removeLayer(rect));
