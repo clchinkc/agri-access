@@ -79,6 +79,12 @@ function loadDemoLocation(farmer) {
     document.getElementById('lossGivenDefaultInput').value = '';
     document.getElementById('exposureAtDefaultInput').value = '';
     
+    // Reset loan parameters to defaults
+    document.getElementById('loanAmount').value = '50000000';
+    document.getElementById('loanTerm').value = '12';
+    document.getElementById('loanPurpose').value = 'working_capital';
+    document.getElementById('collateralType').value = 'land';
+    
     map.setView([demo.lat, demo.lon], 12);
     updateFarmMarker();
     clearResults();
@@ -209,7 +215,13 @@ async function analyzeWithRealNASAData() {
         latitude: parseFloat(document.getElementById('latitude').value),
         longitude: parseFloat(document.getElementById('longitude').value),
         farmSize: parseFloat(document.getElementById('farmSize').value),
-        primaryCrop: document.getElementById('primaryCrop').value
+        primaryCrop: document.getElementById('primaryCrop').value,
+        
+        // Loan parameters
+        loanAmount: parseFloat(document.getElementById('loanAmount').value) || 50000000,
+        loanTerm: parseInt(document.getElementById('loanTerm').value) || 12,
+        loanPurpose: document.getElementById('loanPurpose').value,
+        collateralType: document.getElementById('collateralType').value
     };
 
     // Add Basel III parameter overrides if provided
@@ -506,9 +518,9 @@ function displayWeatherAnalysis(weatherData) {
 
 
 
-// Live Weather Panel Update (Left Control Panel)
+// Current Weather Section Update (Right Results Panel)
 function updateLiveWeatherPanel(weatherData) {
-    const panel = document.getElementById('currentWeatherPanel');
+    const panel = document.getElementById('currentWeatherSection');
     panel.style.display = 'block';
     
     const openMeteoData = weatherData.openMeteoData;
@@ -583,7 +595,9 @@ function displayScoreBreakdown(result) {
 function displayCreditAnalysis(creditAnalysis) {
     document.getElementById('creditScore').textContent = creditAnalysis.creditScore;
     document.getElementById('riskLevel').textContent = creditAnalysis.riskLevel;
+    document.getElementById('requestedLoanAmount').textContent = creditAnalysis.requestedLoanAmount;
     document.getElementById('maxLoanAmount').textContent = creditAnalysis.maxLoanAmount;
+    document.getElementById('loanTerm').textContent = creditAnalysis.loanTerm;
     document.getElementById('interestRate').textContent = creditAnalysis.interestRate;
     document.getElementById('approvalProbability').textContent = `${creditAnalysis.approvalProbability}%`;
     

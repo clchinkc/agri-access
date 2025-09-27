@@ -154,6 +154,47 @@
                     <small style="color: #666; font-size: 11px;">Credit exposure amount at time of default</small>
                 </div>
                 
+                <h3 class="section-subtitle" style="margin-top: 25px; color: #2E7D32; font-size: 1.1em;">
+                    💰 Loan Parameters
+                </h3>
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
+                    Essential banking parameters for credit analysis
+                </p>
+                
+                <div class="form-group">
+                    <label for="loanAmount">Requested Loan Amount (Rp)</label>
+                    <input type="number" id="loanAmount" step="1000000" min="1000000" placeholder="e.g., 50000000" value="50000000">
+                    <small style="color: #666; font-size: 11px;">Amount the farmer wants to borrow</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loanTerm">Loan Term (months)</label>
+                    <input type="number" id="loanTerm" min="1" max="120" placeholder="e.g., 12" value="12">
+                    <small style="color: #666; font-size: 11px;">Loan duration in months</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loanPurpose">Loan Purpose</label>
+                    <select id="loanPurpose">
+                        <option value="working_capital">Working Capital</option>
+                        <option value="equipment">Equipment Purchase</option>
+                        <option value="land_expansion">Land Expansion</option>
+                        <option value="crop_investment">Crop Investment</option>
+                        <option value="livestock">Livestock Purchase</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="collateralType">Collateral Type</label>
+                    <select id="collateralType">
+                        <option value="land">Land Title</option>
+                        <option value="equipment">Agricultural Equipment</option>
+                        <option value="crops">Future Crop Harvest</option>
+                        <option value="mixed">Mixed Collateral</option>
+                        <option value="none">No Collateral (Unsecured)</option>
+                    </select>
+                </div>
+                
                 <div class="demo-locations">
                     <h4>🎯 Test Farm Locations</h4>
                     <button class="demo-btn" onclick="loadDemoLocation('siti')">🌦️ West Java Rice</button>
@@ -168,27 +209,6 @@
                     🚀 Analyze Credit Score
                 </button>
                 
-                <div id="currentWeatherPanel" class="current-weather-panel" style="display: none;">
-                    <h3 class="section-title">🌦️ Current Conditions</h3>
-                    <div class="weather-grid">
-                        <div class="weather-item">
-                            <span class="weather-label">Temperature:</span>
-                            <span class="weather-value" id="liveTemp">---</span>
-                        </div>
-                        <div class="weather-item">
-                            <span class="weather-label">Humidity:</span>
-                            <span class="weather-value" id="liveHumidity">---</span>
-                        </div>
-                        <div class="weather-item">
-                            <span class="weather-label">Conditions:</span>
-                            <span class="weather-value" id="liveConditions">---</span>
-                        </div>
-                        <div class="weather-item">
-                            <span class="weather-label">Risk Level:</span>
-                            <span class="weather-value" id="liveRisk">---</span>
-                        </div>
-                    </div>
-                </div>
                 
                 
             </div>
@@ -280,6 +300,26 @@
                         </div>
                     </div>
                     
+                    <div class="analysis-result" id="currentWeatherSection" style="display: none;">
+                        <h4>🌦️ Current Conditions</h4>
+                        <div class="data-row">
+                            <span class="data-label">Temperature:</span>
+                            <span class="data-value" id="liveTemp">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Humidity:</span>
+                            <span class="data-value" id="liveHumidity">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Conditions:</span>
+                            <span class="data-value" id="liveConditions">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Risk Level:</span>
+                            <span class="data-value" id="liveRisk">---</span>
+                        </div>
+                    </div>
+                    
                     <div class="analysis-result" id="weatherAnalysisSection" style="display: none;">
                         <h4>🌦️ Weather Measurements</h4>
                         <div class="data-row">
@@ -340,8 +380,16 @@
                             <span class="data-value" id="riskLevel">---</span>
                         </div>
                         <div class="data-row">
-                            <span class="data-label">Max Loan Amount:</span>
+                            <span class="data-label">Requested Loan Amount:</span>
+                            <span class="data-value" id="requestedLoanAmount">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Max Approved Amount:</span>
                             <span class="data-value" id="maxLoanAmount">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Loan Term:</span>
+                            <span class="data-value" id="loanTerm">---</span>
                         </div>
                         <div class="data-row">
                             <span class="data-label">Interest Rate:</span>

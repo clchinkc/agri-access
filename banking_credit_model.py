@@ -136,7 +136,10 @@ class BankingCreditModel:
             # Calculate Basel III risk parameters (use overrides if provided)
             pd = farm_data.get('probabilityOfDefaultOverride') or self._calculate_probability_of_default(final_score, farm_data)
             lgd = farm_data.get('lossGivenDefaultOverride') or self._calculate_loss_given_default(final_score, farm_data)
-            ead = farm_data.get('exposureAtDefaultOverride') or max_loan  # Exposure at Default
+            
+            # Use requested loan amount as EAD if provided, otherwise use calculated max loan
+            requested_loan = farm_data.get('loanAmount', max_loan)
+            ead = farm_data.get('exposureAtDefaultOverride') or requested_loan
             expected_credit_loss = self._calculate_expected_credit_loss(pd, lgd, ead)
 
             # Create explainable factors (SHAP-style)
@@ -162,9 +165,13 @@ class BankingCreditModel:
                     'slikRating': slik_rating,
                     'slikDescription': slik_info['description_en'],
                     'slikDescriptionId': slik_info['description_id'],
+                    'requestedLoanAmount': f"Rp {requested_loan:,.0f}",
                     'maxLoanAmount': f"Rp {max_loan:,.0f}",
                     'interestRate': f"{interest_rate}%",
                     'approvalProbability': approval_probability,
+                    'loanTerm': f"{farm_data.get('loanTerm', 12)} months",
+                    'loanPurpose': farm_data.get('loanPurpose', 'working_capital'),
+                    'collateralType': farm_data.get('collateralType', 'land'),
                     
                     # Basel III Risk Parameters
                     'baselIIIRiskParameters': {
