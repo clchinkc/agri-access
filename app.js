@@ -351,15 +351,6 @@ function displayAnalysisResults(result) {
             updateLiveWeatherPanel(result.weatherData);
         }
         
-        // Show payment analysis if payment data is available  
-        if (result.paymentData && result.paymentData.success) {
-            displayPaymentAnalysis(result.paymentData);
-        }
-        
-        // Show integrated insights if multiple data sources available
-        if (result.analysisResults.dataSourceCount >= 3) {
-            displayIntegratedInsights(result);
-        }
         
         // Show data quality assessment if multiple sources available
         if (result.analysisResults.dataSourceCount >= 2) {
@@ -513,60 +504,7 @@ function displayWeatherAnalysis(weatherData) {
     document.getElementById('weatherDataSources').textContent = dataSourceText;
 }
 
-// Payment Analysis Display Functions
-function displayPaymentAnalysis(paymentData) {
-    const section = document.getElementById('paymentReadinessSection');
-    section.style.display = 'block';
-    
-    const analysisResults = paymentData.analysisResults || {};
-    
-    // Show what was actually analyzed (all simulated)
-    const analysisText = 'OVO + GoPay + DANA + QRIS integration strategies';
-    const dataSourcesText = `${paymentData.dataSources?.length || 0} simulated analyses`;
-    
-    // Update display
-    document.getElementById('paymentDataAnalysis').textContent = analysisText;
-    document.getElementById('paymentDataSources').textContent = dataSourcesText;
-}
 
-// Risk Assessment Display
-function displayIntegratedInsights(result) {
-    const section = document.getElementById('integratedInsightsSection');
-    section.style.display = 'block';
-    
-    const analysisResults = result.analysisResults;
-    const hasWeather = result.weatherData && result.weatherData.success;
-    const hasSatellite = result.geeData || result.gfsadData?.available || result.modisData?.available;
-    const hasPayment = result.paymentData && result.paymentData.success;
-    const hasGov = result.governmentData && result.governmentData.success;
-    
-    const totalSources = analysisResults.dataSourceCount || 0;
-    
-    // Show factual analysis scope
-    let analysisScope = [];
-    if (hasSatellite) analysisScope.push('Satellite');
-    if (hasWeather) analysisScope.push('Weather');
-    if (hasGov) analysisScope.push('Government');
-    if (hasPayment) analysisScope.push('Payment');
-    
-    const scopeText = analysisScope.length > 0 ? analysisScope.join(' + ') : 'Limited scope';
-    
-    // Integration status based on real APIs (payment/gov are placeholders)
-    let integrationStatus = 'Limited integration';
-    const realApis = (hasSatellite ? 1 : 0) + (hasWeather ? 1 : 0);
-    if (realApis >= 2) {
-        integrationStatus = 'Real satellite + weather APIs';
-    } else if (realApis >= 1) {
-        integrationStatus = 'Limited real data';
-    } else {
-        integrationStatus = 'No real APIs connected';
-    }
-    
-    // Update display
-    document.getElementById('totalDataSources').textContent = `${totalSources} sources`;
-    document.getElementById('analysisScope').textContent = scopeText;
-    document.getElementById('integrationStatus').textContent = integrationStatus;
-}
 
 // Live Weather Panel Update (Left Control Panel)
 function updateLiveWeatherPanel(weatherData) {
@@ -832,7 +770,6 @@ function clearResults() {
     document.getElementById('defaultInfo').style.display = 'block';
     
     // Reset sections
-    document.getElementById('mlInputsSection').style.display = 'none';
     document.getElementById('vegetationSection').style.display = 'none';
     document.getElementById('crossValidationSection').style.display = 'none';
     
