@@ -268,7 +268,7 @@
                             </div>
                         </div>
                         
-                        <div id="scoreBreakdown" class="score-breakdown" style="display: none;">
+                        <div id="scoreBreakdown" class="score-breakdown" style="display: block;">
                             <div class="breakdown-item">
                                 <span class="breakdown-label">🛰️ Satellite Data:</span>
                                 <span class="breakdown-value" id="satelliteContrib">---</span>
@@ -278,6 +278,67 @@
                                 <span class="breakdown-value" id="weatherContrib">---</span>
                             </div>
                         </div>
+                    </div>
+                    
+                    <!-- Banking Analysis Section - Prominent Display -->
+                    <div class="analysis-result" id="creditAnalysisSection">
+                        <h4>🏦 Banking Credit Analysis</h4>
+                        <div class="data-row">
+                            <span class="data-label">Credit Score:</span>
+                            <span class="data-value" id="creditScore">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Risk Level:</span>
+                            <span class="data-value" id="riskLevel">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Requested Loan Amount:</span>
+                            <span class="data-value" id="requestedLoanAmount">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Max Approved Amount:</span>
+                            <span class="data-value" id="maxLoanAmount">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Loan Term:</span>
+                            <span class="data-value" id="loanTerm">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Interest Rate:</span>
+                            <span class="data-value" id="interestRate">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Approval Probability:</span>
+                            <span class="data-value" id="approvalProbability">---</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Basel III Risk Parameters - Prominent Display -->
+                    <div class="analysis-result" id="baselIIISection">
+                        <h4>📊 Basel III Risk Parameters</h4>
+                        <div class="data-row">
+                            <span class="data-label">Expected Credit Loss:</span>
+                            <span class="data-value" id="expectedCreditLoss">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Probability of Default (PD):</span>
+                            <span class="data-value" id="probabilityOfDefault">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Loss Given Default (LGD):</span>
+                            <span class="data-value" id="lossGivenDefault">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Exposure At Default (EAD):</span>
+                            <span class="data-value" id="exposureAtDefault">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Expected Credit Loss (ECL):</span>
+                            <span class="data-value" id="expectedCreditLossDetailed">---</span>
+                        </div>
+                        <p style="font-size: 11px; color: #999; margin-top: 10px; font-style: italic;">
+                            🔧 = Custom override value used instead of automated calculation
+                        </p>
                     </div>
                     
                     <div class="analysis-result" id="vegetationSection" style="display: none;">
@@ -340,8 +401,8 @@
                         </div>
                     </div>
                     
-                    <div class="analysis-result">
-                        <h4>📡 Satellite Data Sources Status</h4>
+                    <div class="analysis-result" id="dataQualitySection">
+                        <h4>📡 Data Sources & Quality Assessment</h4>
                         <div class="data-row">
                             <span class="data-label">🌍 Google Earth Engine:</span>
                             <span class="data-value" id="geeResult">---</span>
@@ -358,75 +419,11 @@
                             <span class="data-label">🌦️ Weather APIs:</span>
                             <span class="data-value" id="weatherApiResult">---</span>
                         </div>
-                    </div>
-                    
-                    
-
-                    <div class="analysis-result" id="crossValidationSection" style="display: none;">
-                        <h4>📋 Data Quality Assessment</h4>
-                        <div id="validationResults">
+                        <div id="validationResults" style="margin-top: 15px;">
                             <!-- Cross-validation results will be populated -->
                         </div>
                     </div>
                     
-                    <div class="analysis-result" id="creditAnalysisSection">
-                        <h4>🏦 Banking Credit Analysis</h4>
-                        <div class="data-row">
-                            <span class="data-label">Credit Score:</span>
-                            <span class="data-value" id="creditScore">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Risk Level:</span>
-                            <span class="data-value" id="riskLevel">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Requested Loan Amount:</span>
-                            <span class="data-value" id="requestedLoanAmount">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Max Approved Amount:</span>
-                            <span class="data-value" id="maxLoanAmount">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Loan Term:</span>
-                            <span class="data-value" id="loanTerm">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Interest Rate:</span>
-                            <span class="data-value" id="interestRate">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Approval Probability:</span>
-                            <span class="data-value" id="approvalProbability">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Expected Credit Loss:</span>
-                            <span class="data-value" id="expectedCreditLoss">---</span>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-result" id="baselIIISection">
-                        <h4>📊 Basel III Risk Parameters</h4>
-                        <div class="data-row">
-                            <span class="data-label">Probability of Default (PD):</span>
-                            <span class="data-value" id="probabilityOfDefault">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Loss Given Default (LGD):</span>
-                            <span class="data-value" id="lossGivenDefault">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Exposure At Default (EAD):</span>
-                            <span class="data-value" id="exposureAtDefault">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Expected Credit Loss (ECL):</span>
-                            <span class="data-value" id="expectedCreditLossDetailed">---</span>
-                        </div>
-                        <p style="font-size: 11px; color: #999; margin-top: 10px; font-style: italic;">
-                            🔧 = Custom override value used instead of automated calculation
-                        </p>
-                    </div>
                     
                     <div class="analysis-result" id="keyFactorsSection">
                         <h4>🔍 Credit Factors (Banking Model)</h4>
