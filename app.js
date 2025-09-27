@@ -46,22 +46,22 @@ function loadDemoLocation(farmer) {
     const demos = {
         siti: {
             name: 'Ibu Siti Nurhasanah',
-            lat: -6.7749,
-            lon: 107.1389,
+            lat: -6.3276,  // Indramayu, West Java - major rice farming area
+            lon: 108.3249,
             size: 1.5,
             crop: 'rice'
         },
         budi: {
-            name: 'Pak Budi Santoso',
-            lat: -2.5489,
-            lon: 99.6401,
+            name: 'Pak Budi Santoso', 
+            lat: -2.1000,  // Riau Province, Sumatra - major palm oil region
+            lon: 102.3000,
             size: 3.2,
             crop: 'palm oil'
         },
         ratna: {
             name: 'Ibu Ratna Sari',
-            lat: -7.6145,
-            lon: 109.3425,
+            lat: -7.3179,  // Temanggung, Central Java - famous coffee farming area
+            lon: 110.1779,
             size: 0.8,
             crop: 'coffee'
         }
