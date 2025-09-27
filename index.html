@@ -165,17 +165,6 @@
                     </div>
                 </div>
                 
-                <div id="mlInputsSection" class="ml-inputs-panel" style="display: none;">
-                    <h2 class="section-title">
-                        📥 Banking Model Inputs
-                    </h2>
-                    <div class="ml-input-description">
-                        <p>These are the features used by the banking credit model:</p>
-                    </div>
-                    <div id="modelInputs" class="input-features">
-                        <!-- Input features will be populated -->
-                    </div>
-                </div>
                 
             </div>
             
@@ -236,20 +225,12 @@
                         
                         <div id="scoreBreakdown" class="score-breakdown" style="display: none;">
                             <div class="breakdown-item">
-                                <span class="breakdown-label">🏦 Banking Score:</span>
+                                <span class="breakdown-label">🛰️ Satellite Data:</span>
                                 <span class="breakdown-value" id="satelliteContrib">---</span>
                             </div>
                             <div class="breakdown-item">
-                                <span class="breakdown-label">🌦️ Weather Input:</span>
+                                <span class="breakdown-label">🌦️ Weather Analysis:</span>
                                 <span class="breakdown-value" id="weatherContrib">---</span>
-                            </div>
-                            <div class="breakdown-item">
-                                <span class="breakdown-label">💳 Payment APIs:</span>
-                                <span class="breakdown-value" id="paymentContrib">---</span>
-                            </div>
-                            <div class="breakdown-item">
-                                <span class="breakdown-label">🏛️ Government APIs:</span>
-                                <span class="breakdown-value" id="govContrib">---</span>
                             </div>
                         </div>
                     </div>
@@ -295,7 +276,7 @@
                     </div>
                     
                     <div class="analysis-result">
-                        <h4>📡 Data Sources Status</h4>
+                        <h4>📡 Satellite Data Sources Status</h4>
                         <div class="data-row">
                             <span class="data-label">🌍 Google Earth Engine:</span>
                             <span class="data-value" id="geeResult">---</span>
@@ -312,43 +293,9 @@
                             <span class="data-label">🌦️ Weather APIs:</span>
                             <span class="data-value" id="weatherApiResult">---</span>
                         </div>
-                        <div class="data-row">
-                            <span class="data-label">🏛️ Government APIs:</span>
-                            <span class="data-value" id="govApiResult">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">💳 Payment APIs:</span>
-                            <span class="data-value" id="paymentApiResult">---</span>
-                        </div>
                     </div>
                     
-                    <div class="analysis-result" id="paymentReadinessSection" style="display: none;">
-                        <h4>💳 Payment Data Analysis (Simulated)</h4>
-                        <div class="data-row">
-                            <span class="data-label">Integration Analysis:</span>
-                            <span class="data-value" id="paymentDataAnalysis">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Data Sources Analyzed:</span>
-                            <span class="data-value" id="paymentDataSources">---</span>
-                        </div>
-                    </div>
                     
-                    <div class="analysis-result" id="integratedInsightsSection" style="display: none;">
-                        <h4>⚖️ Risk Assessment</h4>
-                        <div class="data-row">
-                            <span class="data-label">Total Data Sources:</span>
-                            <span class="data-value" id="totalDataSources">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Analysis Scope:</span>
-                            <span class="data-value" id="analysisScope">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Data Integration Status:</span>
-                            <span class="data-value" id="integrationStatus">---</span>
-                        </div>
-                    </div>
 
                     <div class="analysis-result" id="crossValidationSection" style="display: none;">
                         <h4>📋 Data Quality Assessment</h4>

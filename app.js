@@ -317,15 +317,6 @@ function displayAnalysisResults(result) {
         }
         document.getElementById('weatherApiResult').textContent = weatherStatus;
         
-        // Government API status (check actual availability)
-        const hasGovData = result.governmentData && result.governmentData.success;
-        const govStatus = hasGovData ? '⚠️ Limited (BPS only)' : '❌ No APIs';
-        document.getElementById('govApiResult').textContent = govStatus;
-        
-        // Payment API status (check actual availability) 
-        const hasPaymentData = result.paymentData && result.paymentData.success;
-        const paymentStatus = hasPaymentData ? '⚠️ Simulated only' : '❌ No APIs';
-        document.getElementById('paymentApiResult').textContent = paymentStatus;
         
         // Show vegetation section if GEE data is available
         if (result.analysisResults.geeDataAvailable && result.analysisResults.enhancedFeatures) {
@@ -660,46 +651,8 @@ function displayCreditAnalysis(creditAnalysis) {
     const riskElement = document.getElementById('riskLevel');
     riskElement.innerHTML = `<span class="ai-status-indicator ai-active"></span>${creditAnalysis.riskLevel}`;
     
-    // Show and populate ML inputs section in left column
-    const mlInputsSection = document.getElementById('mlInputsSection');
-    mlInputsSection.style.display = 'block';
-    displayModelInputs(creditAnalysis.farmFeatures);
 }
 
-function displayModelInputs(farmFeatures) {
-    const inputsContainer = document.getElementById('modelInputs');
-    
-    if (!farmFeatures) {
-        inputsContainer.innerHTML = '<p style="color: #999; font-size: 12px;">No input features available</p>';
-        return;
-    }
-    
-    // Map technical names to user-friendly names
-    const featureLabels = {
-        'farm_size_hectares': 'Farm Size',
-        'ndvi_mean': 'Vegetation Health (NDVI)',
-        'evi_mean': 'Vegetation Quality (EVI)', 
-        'ndmi_mean': 'Soil Moisture (NDMI)',
-        'phone_usage_score': 'Digital Engagement',
-        'payment_regularity': 'Payment History',
-        'location_stability': 'Location Stability'
-    };
-    
-    let inputsHtml = '';
-    Object.entries(farmFeatures).forEach(([key, value]) => {
-        const label = featureLabels[key] || key;
-        const formattedValue = typeof value === 'number' ? value.toFixed(3) : value;
-        
-        inputsHtml += `
-            <div class="input-feature-item" data-feature="${key}">
-                <span class="input-feature-name">${label}</span>
-                <span class="input-feature-value">${formattedValue}</span>
-            </div>
-        `;
-    });
-    
-    inputsContainer.innerHTML = inputsHtml;
-}
 
 function displayKeyFactors(topFactors) {
     const factorsContainer = document.getElementById('topFactors');

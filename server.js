@@ -6,9 +6,7 @@ const { spawn } = require('child_process');
 const axios = require('axios');
 
 const SatelliteClient = require('./lib/satellite-client');
-const IndonesiaGovernmentClient = require('./lib/indonesia-government-client');
 const WeatherClient = require('./lib/weather-client');
-const PaymentClient = require('./lib/payment-client');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,37 +16,29 @@ app.use(express.json());
 app.use(express.static('.'));
 
 const satelliteClient = new SatelliteClient();
-const governmentClient = new IndonesiaGovernmentClient();
 const weatherClient = new WeatherClient();
-const paymentClient = new PaymentClient();
 
 // Main analysis endpoint
 app.post('/api/analyze', async (req, res) => {
   try {
     const farmData = req.body;
 
-    // Process all data sources in parallel
-    const [satelliteData, governmentData, weatherData, paymentData] = await Promise.allSettled([
+    // Process satellite and weather data sources in parallel
+    const [satelliteData, weatherData] = await Promise.allSettled([
       satelliteClient.getRealSatelliteDataForLocation(farmData),
-      governmentClient.getAgriculturalStatistics(farmData),
-      weatherClient.getWeatherAnalysis(farmData),
-      paymentClient.getPaymentAnalysis(farmData)
+      weatherClient.getWeatherAnalysis(farmData)
     ]).then(results => [
       results[0].status === 'fulfilled' ? results[0].value : generateDemoSatelliteData(farmData),
-      results[1].status === 'fulfilled' ? results[1].value : { success: false, error: 'Service unavailable', dataSources: [] },
-      results[2].status === 'fulfilled' ? results[2].value : { success: false, error: 'Service unavailable', dataSources: [] },
-      results[3].status === 'fulfilled' ? results[3].value : { success: false, error: 'Service unavailable', dataSources: [] }
+      results[1].status === 'fulfilled' ? results[1].value : { success: false, error: 'Service unavailable', dataSources: [] }
     ]);
 
     // Run banking analysis
     const creditAnalysis = await getExplainableAIAnalysis(farmData, satelliteData, weatherData);
 
-    // Combine all data sources
+    // Combine satellite and weather data sources
     const allDataSources = [
       ...(satelliteData.dataSources || []),
-      ...(governmentData.dataSources || []),
-      ...(weatherData.dataSources || []),
-      ...(paymentData.dataSources || [])
+      ...(weatherData.dataSources || [])
     ];
 
     // Use credit score from analysis or fallback
@@ -58,21 +48,13 @@ app.post('/api/analyze', async (req, res) => {
 
     // Combine results
     const combinedResults = {
-      success: satelliteData.success || governmentData.success || weatherData.success || paymentData.success,
+      success: satelliteData.success || weatherData.success,
       farmInfo: satelliteData.farmInfo,
       geeData: satelliteData.geeData || null,
       gfsadData: satelliteData.gfsadData,
       modisData: satelliteData.modisData,
       browseImages: satelliteData.browseImages,
       dataSources: allDataSources,
-
-      // Government data integration
-      governmentData: governmentData.success ? {
-        bpsData: governmentData.bpsData,
-        satudataData: governmentData.satudataData,
-        bdspData: governmentData.bdspData,
-        analysisResults: governmentData.analysisResults
-      } : null,
 
       // Weather data integration
       weatherData: weatherData.success ? {
@@ -82,17 +64,6 @@ app.post('/api/analyze', async (req, res) => {
         bmkgData: weatherData.bmkgData,
         droughtMonitoring: weatherData.droughtMonitoring,
         analysisResults: weatherData.analysisResults
-      } : null,
-
-      // Payment data integration
-      paymentData: paymentData.success ? {
-        ovoData: paymentData.ovoData,
-        goPayData: paymentData.goPayData,
-        danaData: paymentData.danaData,
-        telcoData: paymentData.telcoData,
-        qrisData: paymentData.qrisData,
-        partnershipOpportunities: paymentData.partnershipOpportunities,
-        analysisResults: paymentData.analysisResults
       } : null,
 
       analysisResults: {
@@ -105,9 +76,7 @@ app.post('/api/analyze', async (req, res) => {
 
       errors: [
         ...(satelliteData.errors || []),
-        ...(governmentData.errors || []),
         ...(weatherData.errors || []),
-        ...(paymentData.errors || []),
         ...(creditAnalysis.success ? [] : [creditAnalysis.error])
       ]
     };
