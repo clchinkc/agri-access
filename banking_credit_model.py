@@ -133,10 +133,10 @@ class BankingCreditModel:
             interest_rate = self.KUR_RATES[risk_level]
             approval_probability = self._calculate_approval_probability(final_score)
 
-            # Calculate Basel III risk parameters
-            pd = self._calculate_probability_of_default(final_score, farm_data)
-            lgd = self._calculate_loss_given_default(final_score, farm_data)
-            ead = max_loan  # Exposure at Default equals the loan amount
+            # Calculate Basel III risk parameters (use overrides if provided)
+            pd = farm_data.get('probabilityOfDefaultOverride') or self._calculate_probability_of_default(final_score, farm_data)
+            lgd = farm_data.get('lossGivenDefaultOverride') or self._calculate_loss_given_default(final_score, farm_data)
+            ead = farm_data.get('exposureAtDefaultOverride') or max_loan  # Exposure at Default
             expected_credit_loss = self._calculate_expected_credit_loss(pd, lgd, ead)
 
             # Create explainable factors (SHAP-style)
@@ -174,7 +174,12 @@ class BankingCreditModel:
                         'lossGivenDefaultPercent': f"{lgd*100:.1f}%",
                         'exposureAtDefault': f"Rp {ead:,.0f}",
                         'expectedCreditLoss': f"Rp {expected_credit_loss:,.0f}",
-                        'expectedCreditLossPercent': f"{(expected_credit_loss/ead)*100:.2f}%" if ead > 0 else "0.00%"
+                        'expectedCreditLossPercent': f"{(expected_credit_loss/ead)*100:.2f}%" if ead > 0 else "0.00%",
+                        'overridesUsed': {
+                            'probabilityOfDefault': bool(farm_data.get('probabilityOfDefaultOverride')),
+                            'lossGivenDefault': bool(farm_data.get('lossGivenDefaultOverride')),
+                            'exposureAtDefault': bool(farm_data.get('exposureAtDefaultOverride'))
+                        }
                     },
                     'topFactors': factors,
                     'improvementSuggestions': suggestions,

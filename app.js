@@ -74,6 +74,11 @@ function loadDemoLocation(farmer) {
     document.getElementById('farmSize').value = demo.size;
     document.getElementById('primaryCrop').value = demo.crop;
     
+    // Clear Basel III override inputs when loading demo locations
+    document.getElementById('probabilityOfDefaultInput').value = '';
+    document.getElementById('lossGivenDefaultInput').value = '';
+    document.getElementById('exposureAtDefaultInput').value = '';
+    
     map.setView([demo.lat, demo.lon], 12);
     updateFarmMarker();
     clearResults();
@@ -206,6 +211,21 @@ async function analyzeWithRealNASAData() {
         farmSize: parseFloat(document.getElementById('farmSize').value),
         primaryCrop: document.getElementById('primaryCrop').value
     };
+
+    // Add Basel III parameter overrides if provided
+    const pdInput = document.getElementById('probabilityOfDefaultInput').value;
+    const lgdInput = document.getElementById('lossGivenDefaultInput').value;
+    const eadInput = document.getElementById('exposureAtDefaultInput').value;
+    
+    if (pdInput && !isNaN(parseFloat(pdInput))) {
+        farmData.probabilityOfDefaultOverride = parseFloat(pdInput) / 100; // Convert percentage to decimal
+    }
+    if (lgdInput && !isNaN(parseFloat(lgdInput))) {
+        farmData.lossGivenDefaultOverride = parseFloat(lgdInput) / 100; // Convert percentage to decimal  
+    }
+    if (eadInput && !isNaN(parseFloat(eadInput))) {
+        farmData.exposureAtDefaultOverride = parseFloat(eadInput);
+    }
 
     try {
         // Reset and start workflow progression
@@ -632,19 +652,27 @@ function displayCreditAnalysis(creditAnalysis) {
     // Display Basel III Risk Parameters - PROMINENT DISPLAY
     if (creditAnalysis.baselIIIRiskParameters) {
         const basel = creditAnalysis.baselIIIRiskParameters;
+        const overrides = basel.overridesUsed;
         
-        // Main prominent display
-        document.getElementById('expectedCreditLossMain').textContent = basel.expectedCreditLoss;
-        document.getElementById('probabilityOfDefaultMain').textContent = basel.probabilityOfDefaultPercent;
-        document.getElementById('lossGivenDefaultMain').textContent = basel.lossGivenDefaultPercent;
+        // Main prominent display with override indicators
+        const pdText = overrides.probabilityOfDefault ? `${basel.probabilityOfDefaultPercent} 🔧` : basel.probabilityOfDefaultPercent;
+        const lgdText = overrides.lossGivenDefault ? `${basel.lossGivenDefaultPercent} 🔧` : basel.lossGivenDefaultPercent;
+        const eclText = (overrides.probabilityOfDefault || overrides.lossGivenDefault || overrides.exposureAtDefault) ? 
+            `${basel.expectedCreditLoss} 🔧` : basel.expectedCreditLoss;
         
-        // Detailed section
-        document.getElementById('probabilityOfDefault').textContent = basel.probabilityOfDefaultPercent;
-        document.getElementById('lossGivenDefault').textContent = basel.lossGivenDefaultPercent;
-        document.getElementById('exposureAtDefault').textContent = basel.exposureAtDefault;
-        document.getElementById('expectedCreditLoss').textContent = basel.expectedCreditLoss;
+        document.getElementById('expectedCreditLossMain').textContent = eclText;
+        document.getElementById('probabilityOfDefaultMain').textContent = pdText;
+        document.getElementById('lossGivenDefaultMain').textContent = lgdText;
+        
+        // Detailed section with override indicators
+        const eadText = overrides.exposureAtDefault ? `${basel.exposureAtDefault} 🔧` : basel.exposureAtDefault;
+        
+        document.getElementById('probabilityOfDefault').textContent = pdText;
+        document.getElementById('lossGivenDefault').textContent = lgdText;
+        document.getElementById('exposureAtDefault').textContent = eadText;
+        document.getElementById('expectedCreditLoss').textContent = eclText;
         document.getElementById('expectedCreditLossDetailed').textContent = 
-            `${basel.expectedCreditLoss} (${basel.expectedCreditLossPercent})`;
+            `${eclText} (${basel.expectedCreditLossPercent})`;
     }
     
     // Add AI status indicator

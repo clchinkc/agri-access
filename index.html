@@ -129,6 +129,31 @@
                     </select>
                 </div>
                 
+                <h3 class="section-subtitle" style="margin-top: 25px; color: #e65100; font-size: 1.1em;">
+                    📊 Basel III Risk Parameters (Optional Override)
+                </h3>
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
+                    Leave blank to use automated calculations, or enter custom values to override
+                </p>
+                
+                <div class="form-group">
+                    <label for="probabilityOfDefaultInput">Probability of Default (PD) %</label>
+                    <input type="number" id="probabilityOfDefaultInput" step="0.01" min="0" max="100" placeholder="e.g., 2.50">
+                    <small style="color: #666; font-size: 11px;">12-month default probability percentage</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lossGivenDefaultInput">Loss Given Default (LGD) %</label>
+                    <input type="number" id="lossGivenDefaultInput" step="0.1" min="0" max="100" placeholder="e.g., 45.0">
+                    <small style="color: #666; font-size: 11px;">Expected loss percentage if default occurs</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="exposureAtDefaultInput">Exposure At Default (EAD) Rp</label>
+                    <input type="number" id="exposureAtDefaultInput" step="1000000" min="0" placeholder="e.g., 50000000">
+                    <small style="color: #666; font-size: 11px;">Credit exposure amount at time of default</small>
+                </div>
+                
                 <div class="demo-locations">
                     <h4>🎯 Test Farm Locations</h4>
                     <button class="demo-btn" onclick="loadDemoLocation('siti')">🌦️ West Java Rice</button>
@@ -350,6 +375,9 @@
                             <span class="data-label">Expected Credit Loss (ECL):</span>
                             <span class="data-value" id="expectedCreditLossDetailed">---</span>
                         </div>
+                        <p style="font-size: 11px; color: #999; margin-top: 10px; font-style: italic;">
+                            🔧 = Custom override value used instead of automated calculation
+                        </p>
                     </div>
                     
                     <div class="analysis-result" id="keyFactorsSection">
