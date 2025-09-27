@@ -632,10 +632,29 @@ function displayScoreBreakdown(result) {
 
 // Explainable AI Functions
 function displayCreditAnalysis(creditAnalysis) {
+    document.getElementById('creditScore').textContent = creditAnalysis.creditScore;
     document.getElementById('riskLevel').textContent = creditAnalysis.riskLevel;
     document.getElementById('maxLoanAmount').textContent = creditAnalysis.maxLoanAmount;
     document.getElementById('interestRate').textContent = creditAnalysis.interestRate;
     document.getElementById('approvalProbability').textContent = `${creditAnalysis.approvalProbability}%`;
+    
+    // Display Basel III Risk Parameters - PROMINENT DISPLAY
+    if (creditAnalysis.baselIIIRiskParameters) {
+        const basel = creditAnalysis.baselIIIRiskParameters;
+        
+        // Main prominent display
+        document.getElementById('expectedCreditLossMain').textContent = basel.expectedCreditLoss;
+        document.getElementById('probabilityOfDefaultMain').textContent = basel.probabilityOfDefaultPercent;
+        document.getElementById('lossGivenDefaultMain').textContent = basel.lossGivenDefaultPercent;
+        
+        // Detailed section
+        document.getElementById('probabilityOfDefault').textContent = basel.probabilityOfDefaultPercent;
+        document.getElementById('lossGivenDefault').textContent = basel.lossGivenDefaultPercent;
+        document.getElementById('exposureAtDefault').textContent = basel.exposureAtDefault;
+        document.getElementById('expectedCreditLoss').textContent = basel.expectedCreditLoss;
+        document.getElementById('expectedCreditLossDetailed').textContent = 
+            `${basel.expectedCreditLoss} (${basel.expectedCreditLossPercent})`;
+    }
     
     // Add AI status indicator
     const riskElement = document.getElementById('riskLevel');
@@ -890,10 +909,7 @@ function resetWorkflowStatus() {
     }
 }
 
-// Add mobile navigation toggle
-function toggleMobileInterface() {
-    window.location.href = '/index-mobile.html';
-}
+// Mobile navigation toggle removed - mobile view deprecated
 
 // Initialize presentation mode
 function initializePresentationMode() {

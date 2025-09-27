@@ -435,14 +435,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Serve mobile interface
-app.get('/mobile', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index-mobile.html'));
-});
-
-app.get('/index-mobile.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index-mobile.html'));
-});
+// Mobile interface routes removed - mobile view deprecated
 
 // Start server
 app.listen(PORT, () => {

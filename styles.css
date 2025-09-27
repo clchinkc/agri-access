@@ -573,6 +573,38 @@ body {
     color: #666;
 }
 
+/* Basel III Metrics Display */
+.basel-metrics-display {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 25px;
+}
+
+.basel-metric {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    border: 2px solid rgba(255, 152, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.1);
+}
+
+.basel-label {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #e65100;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.basel-value {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #e65100;
+}
+
 .score-breakdown {
     margin-top: 15px;
     padding: 12px;

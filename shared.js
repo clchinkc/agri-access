@@ -1,47 +1,6 @@
 // Shared JavaScript functions for both mobile and desktop interfaces
 
-// PWA Service Worker Registration
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-        try {
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            console.log('Service Worker registered successfully:', registration.scope);
 
-            // Show install prompt when available
-            let deferredPrompt;
-
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                showInstallButton();
-            });
-
-            // Handle successful installation
-            window.addEventListener('appinstalled', () => {
-                console.log('Agri-Access installed successfully');
-                hideInstallButton();
-            });
-
-        } catch (error) {
-            console.log('Service Worker registration failed:', error);
-        }
-    });
-}
-
-// PWA Install Button Functions
-function showInstallButton() {
-    const installBtn = document.getElementById('pwa-install-btn');
-    if (installBtn) {
-        installBtn.style.display = 'block';
-    }
-}
-
-function hideInstallButton() {
-    const installBtn = document.getElementById('pwa-install-btn');
-    if (installBtn) {
-        installBtn.style.display = 'none';
-    }
-}
 
 // Common API endpoint
 const API_BASE = '/api';
@@ -263,14 +222,7 @@ function clearLocalStorage(key) {
     }
 }
 
-// Interface switching functions
-function toggleMobileInterface() {
-    window.location.href = 'index-mobile.html';
-}
-
-function toggleDesktopInterface() {
-    window.location.href = 'index.html';
-}
+// Interface switching functions removed - mobile view deprecated
 
 // Demo location loader
 function loadDemoLocation(location) {
@@ -324,8 +276,6 @@ if (typeof module !== 'undefined' && module.exports) {
         saveToLocalStorage,
         loadFromLocalStorage,
         clearLocalStorage,
-        toggleMobileInterface,
-        toggleDesktopInterface,
         loadDemoLocation
     };
 }

@@ -1,16 +1,16 @@
-# 🛰️ Agri-Access: Indonesian Agricultural Credit Platform
+# 🛰️ Agri-Access: Alternative Credit Scoring Platform
 
-**Satellite-Powered Agricultural Credit Scoring with Indonesian Banking Standards**
+**Banking Infrastructure for Alternative Credit Assessment**
 
-Agri-Access provides real-time agricultural credit assessments for Indonesian farmers using satellite data, weather analysis, and government statistics, fully compliant with OJK regulations.
+Agri-Access is positioned as a B2B alternative credit scoring platform that serves banks and financial institutions with satellite-powered agricultural risk assessment. We provide alternative credit scores similar to TransUnion but specifically designed for agricultural lending in emerging markets.
 
-## 🎯 Core Capabilities
+## 🎯 Platform Positioning
 
-- **🇮🇩 SLIK-Compatible Scoring**: Indonesian 1-5 collectibility system with OJK 29/2024 compliance
-- **🛰️ Multi-Source Data**: Google Earth Engine (10m) + NASA satellites + Indonesian government APIs
-- **⚡ Real-Time Processing**: 3-5 second comprehensive analysis with 80% real data
-- **📱 Rural-Ready**: Offline PWA with SMS integration for limited connectivity areas
-- **⚖️ Regional Fairness**: Bias monitoring across Java vs Outer Islands
+- **🏦 B2B Banking Platform**: Alternative credit scoring service for financial institutions
+- **📊 Basel III Compliance**: PD, LGD, EAD calculations with expected credit loss modeling  
+- **🛰️ Satellite Data Integration**: Real-time crop health monitoring and historical trend analysis
+- **🇮🇩 Indonesian Market Focus**: SLIK-compatible scoring with OJK 29/2024 compliance
+- **⚡ Real-Time API**: 3-5 second comprehensive risk assessment with explainable AI
 
 ## 🚀 Quick Start
 
@@ -22,7 +22,7 @@ npm install && npm start
 npm run demo
 ```
 
-Visit `http://localhost:3000` for the web interface or `/mobile` for mobile.
+Visit `http://localhost:3000` for the banking dashboard interface.
 
 ## 🏗️ System Architecture
 

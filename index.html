@@ -25,17 +25,14 @@
         <div class="header-flex">
             <h1>🛰️🌦️ Agri-Access</h1>
             <div class="header-buttons">
-                <button onclick="toggleMobileInterface()" class="header-btn">
-                    📱 Mobile View
-                </button>
                 <button onclick="document.documentElement.requestFullscreen()" class="header-btn">
                     🖥️ Present
                 </button>
             </div>
         </div>
-        <p>AI-Powered Agricultural Credit Scoring</p>
+        <p>Alternative Credit Scoring Platform for Banks</p>
         <div class="header-subtitle">
-            Satellite Vegetation + Real-Time Weather + Government Data + Payment Analysis
+            B2B Banking Infrastructure • Basel III Compliance • Satellite Risk Assessment
         </div>
     </div>
         
@@ -43,62 +40,62 @@
             <div class="control-panel">
                 <!-- Bank Staff Workflow Progress -->
                 <div class="bank-workflow-header">
-                    <h2>🏦 Credit Analysis Workflow</h2>
-                    <p>Bank Staff Processing Flow</p>
+                    <h2>🏦 Alternative Credit Scoring Workflow</h2>
+                    <p>Banking API Integration Process</p>
                 </div>
                 
                 <div class="workflow-section">
                     <div class="workflow-title">
                         <div class="workflow-status active" id="workflowStatus1">1</div>
-                        Data Collection
+                        API Data Input
                     </div>
                     <div class="workflow-detail">
-                        ✅ Enter farmer information and location details
+                        ✅ Bank submits borrower data via API integration
                     </div>
                 </div>
                 
                 <div class="workflow-section">
                     <div class="workflow-title">
                         <div class="workflow-status" id="workflowStatus2">2</div>
-                        Satellite Analysis
+                        Satellite Data Fusion
                     </div>
                     <div class="workflow-detail">
-                        🛰️ Process NASA GFSAD, MODIS & Google Earth Engine data
+                        🛰️ Process Google Earth Engine, NASA GFSAD & MODIS data
                     </div>
                 </div>
                 
                 <div class="workflow-section">
                     <div class="workflow-title">
                         <div class="workflow-status" id="workflowStatus3">3</div>
-                        Risk Assessment
+                        Risk Modeling
                     </div>
                     <div class="workflow-detail">
-                        🌦️ Analyze weather patterns, soil conditions & geographic factors
+                        📊 Calculate PD, LGD, EAD using Basel III methodology
                     </div>
                 </div>
                 
                 <div class="workflow-section">
                     <div class="workflow-title">
                         <div class="workflow-status" id="workflowStatus4">4</div>
-                        Credit Scoring
+                        Alternative Credit Score
                     </div>
                     <div class="workflow-detail">
-                        🤖 Generate ICICI/Kenya methodology-based score (300-850)
+                        🏦 Generate credit score (300-850) with explainable AI
                     </div>
                 </div>
                 
                 <div class="workflow-section">
                     <div class="workflow-title">
                         <div class="workflow-status" id="workflowStatus5">5</div>
-                        Decision
+                        API Response
                     </div>
                     <div class="workflow-detail">
-                        📋 Provide loan terms, approval probability & recommendations
+                        📤 Return risk parameters and lending recommendations
                     </div>
                 </div>
 
                 <h2 class="section-title" style="margin-top: 25px;">
-                    📍 Farm Information
+                    📍 API Demo Data Input
                 </h2>
                 
                 <div class="form-group">
@@ -211,14 +208,32 @@
             
             <div class="results-panel">
                 <div style="background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center;">
-                    <h2 style="margin: 0; font-size: 1.3em;">📊 Credit Analysis Results</h2>
-                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">AI-Powered Banking Decision Support</p>
+                    <h2 style="margin: 0; font-size: 1.3em;">📊 Alternative Credit Score API Response</h2>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Basel III Compliant Risk Assessment</p>
                 </div>
                 
                 <div id="successResults" class="hidden">
+                    <!-- Credit Score and Basel III Risk Parameters - Main Display -->
                     <div class="credit-score-display">
                         <div class="score-number" id="scoreNumber">---</div>
-                        <div class="score-status" id="scoreStatus">Based on Real Data</div>
+                        <div class="score-status" id="scoreStatus">Basel III Compliant</div>
+                        
+                        <!-- Expected Credit Loss - Prominently Displayed -->
+                        <div class="basel-metrics-display">
+                            <div class="basel-metric">
+                                <div class="basel-label">Expected Credit Loss</div>
+                                <div class="basel-value" id="expectedCreditLossMain">---</div>
+                            </div>
+                            <div class="basel-metric">
+                                <div class="basel-label">Probability of Default</div>
+                                <div class="basel-value" id="probabilityOfDefaultMain">---</div>
+                            </div>
+                            <div class="basel-metric">
+                                <div class="basel-label">Loss Given Default</div>
+                                <div class="basel-value" id="lossGivenDefaultMain">---</div>
+                            </div>
+                        </div>
+                        
                         <div id="scoreBreakdown" class="score-breakdown" style="display: none;">
                             <div class="breakdown-item">
                                 <span class="breakdown-label">🏦 Banking Score:</span>
@@ -345,6 +360,10 @@
                     <div class="analysis-result" id="creditAnalysisSection">
                         <h4>🏦 Banking Credit Analysis</h4>
                         <div class="data-row">
+                            <span class="data-label">Credit Score:</span>
+                            <span class="data-value" id="creditScore">---</span>
+                        </div>
+                        <div class="data-row">
                             <span class="data-label">Risk Level:</span>
                             <span class="data-value" id="riskLevel">---</span>
                         </div>
@@ -359,6 +378,30 @@
                         <div class="data-row">
                             <span class="data-label">Approval Probability:</span>
                             <span class="data-value" id="approvalProbability">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Expected Credit Loss:</span>
+                            <span class="data-value" id="expectedCreditLoss">---</span>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-result" id="baselIIISection">
+                        <h4>📊 Basel III Risk Parameters</h4>
+                        <div class="data-row">
+                            <span class="data-label">Probability of Default (PD):</span>
+                            <span class="data-value" id="probabilityOfDefault">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Loss Given Default (LGD):</span>
+                            <span class="data-value" id="lossGivenDefault">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Exposure At Default (EAD):</span>
+                            <span class="data-value" id="exposureAtDefault">---</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Expected Credit Loss (ECL):</span>
+                            <span class="data-value" id="expectedCreditLossDetailed">---</span>
                         </div>
                     </div>
                     
@@ -407,28 +450,28 @@
                 
                 <div id="defaultInfo">
                     <div class="analysis-result">
-                        <h4>🎯 How Agricultural Credit Scoring Works</h4>
+                        <h4>🎯 Alternative Credit Scoring Platform</h4>
                         <p style="font-size: 13px; line-height: 1.5; color: #666;">
-                            <strong>🛰️ Satellite Analysis:</strong><br>
-                            • Google Earth Engine: High-resolution crop health monitoring<br>
-                            • NASA GFSAD: Precise cropland classification<br>
-                            • NASA MODIS: Vegetation trends and seasonal patterns<br><br>
+                            <strong>🏦 B2B Banking Infrastructure:</strong><br>
+                            • Alternative credit scores for financial institutions<br>
+                            • Similar to TransUnion but for agricultural lending<br>
+                            • API integration for real-time risk assessment<br><br>
                             
-                            <strong>🌦️ Weather Risk Assessment:</strong><br>
-                            • Real-time temperature and precipitation data<br>
-                            • 7-day weather forecasts for crop planning<br>
-                            • Drought risk monitoring and alerts<br>
-                            • Climate suitability analysis for specific crops<br><br>
+                            <strong>📊 Basel III Compliance:</strong><br>
+                            • Probability of Default (PD) calculations<br>
+                            • Loss Given Default (LGD) modeling<br>
+                            • Exposure at Default (EAD) assessments<br>
+                            • Expected Credit Loss (ECL) reporting<br><br>
                             
-                            <strong>🏛️ Official Data Validation:</strong><br>
-                            • Indonesian government agricultural statistics<br>
-                            • Market prices and crop production data<br>
-                            • Digital payment ecosystem readiness<br><br>
+                            <strong>🛰️ Satellite Data Sources:</strong><br>
+                            • Google Earth Engine: 10m resolution crop monitoring<br>
+                            • NASA GFSAD: Cropland classification validation<br>
+                            • NASA MODIS: Historical vegetation trend analysis<br><br>
                             
-                            <strong>🤖 AI Credit Scoring:</strong><br>
-                            • Explainable machine learning algorithms<br>
-                            • Risk assessment based on multiple data sources<br>
-                            • Personalized recommendations for farmers
+                            <strong>🤖 Explainable AI:</strong><br>
+                            • Machine learning with transparent decision factors<br>
+                            • SLIK-compatible scoring (300-850 range)<br>
+                            • Real-time API responses in 3-5 seconds
                         </p>
                     </div>
                 </div>
