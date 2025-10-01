@@ -109,7 +109,7 @@ def get_openweather_data(latitude, longitude):
     import os
     
     # Try OpenWeatherMap API if API key is available
-    api_key = os.environ.get('OPENWEATHER_API_KEY')
+    api_key = os.environ.get('OPENWEATHER_API_KEY', '***REMOVED-CREDENTIAL***')
     
     if api_key:
         try:

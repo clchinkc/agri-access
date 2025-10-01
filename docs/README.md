@@ -75,15 +75,17 @@ Location Input → Satellite Tiles → 768-dim Features → Risk Features → ML
 ### Machine Learning Pipeline
 - **Algorithm**: Random Forest + XGBoost ensemble model with Prithvi-EO-2.0-300M integration
 - **Ensemble Architecture**: 
-  - Random Forest (70% weight): Primary model trained on 1000 synthetic Indonesian agricultural samples
-  - XGBoost (30% weight): Gradient boosting component for enhanced prediction accuracy
+  - Random Forest (70% weight): Primary model providing stability and robust predictions
+  - XGBoost (30% weight): Gradient boosting component for accuracy and non-linear pattern handling
+  - MultiOutputRegressor: Simultaneous prediction ensuring Basel III parameter consistency
 - **Multi-Target Prediction**: Simultaneous prediction of 4 Basel III parameters
-  - PD (Probability of Default)
-  - LGD (Loss Given Default) 
-  - EAD (Exposure at Default)
-  - Credit Score (300-850 scale → converted to SLIK 1-5)
+  - Credit Score (300-850 scale, normalized to 0-1 for processing)
+  - PD (Probability of Default): 0-1 scale representing default likelihood
+  - LGD (Loss Given Default): 0-1 scale representing loss severity
+  - EAD (Exposure at Default): Monetary exposure amount
 - **Feature Engineering**: 320 total features (256 Prithvi satellite + 64 weather + traditional)
-- **Training Strategy**: Self-supervised learning on Indonesian agricultural patterns with crop-specific risk modeling
+- **Training Strategy**: 5 representative Indonesian agricultural samples with deterministic processing
+- **Performance**: Sub-5-second processing with reproducible results via fixed random seeds
 
 ### SHAP Explainability & Normalization
 - **TreeExplainer**: Optimized for Random Forest ensemble with exact SHAP value computation
