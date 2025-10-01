@@ -569,6 +569,26 @@ function displayAnalysisResults(result) {
             }
         }, 200);
         
+        // Initialize Farmer Explanation Component
+        setTimeout(() => {
+            if (window.FarmerExplanationComponent) {
+                try {
+                    window.farmerComponent = new FarmerExplanationComponent('farmerExplanationContainer');
+                    window.farmerComponent.setData(
+                        result.basel_iii_results, 
+                        result.shap_explanations, 
+                        result.weather_analysis, 
+                        result.satellite_data
+                    );
+                    console.log('✅ Farmer explanation component initialized');
+                } catch (error) {
+                    console.error('❌ Error initializing farmer component:', error);
+                }
+            } else {
+                console.warn('⚠️ FarmerExplanationComponent not available');
+            }
+        }, 300);
+        
     } else if (result.success && result.analysisResults) {
         // Legacy analysis results structure (for backward compatibility)
         // Show success results
@@ -641,6 +661,24 @@ function displayAnalysisResults(result) {
         // Show score breakdown if multiple data sources available
         displayBaselIIIScoreBreakdown(result);
         
+        // Initialize Farmer Explanation Component for legacy path
+        setTimeout(() => {
+            if (window.FarmerExplanationComponent) {
+                try {
+                    window.farmerComponent = new FarmerExplanationComponent('farmerExplanationContainer');
+                    window.farmerComponent.setData(
+                        result.basel_iii_results, 
+                        result.shap_explanations, 
+                        result.weatherData, 
+                        result.analysisResults
+                    );
+                    console.log('✅ Farmer explanation component initialized (legacy path)');
+                } catch (error) {
+                    console.error('❌ Error initializing farmer component (legacy):', error);
+                }
+            }
+        }, 300);
+        
     } else {
         // Show failure results with Basel III context
         document.getElementById('successResults').classList.add('hidden');
@@ -653,6 +691,12 @@ function displayAnalysisResults(result) {
         document.getElementById('gfsadError').textContent = 'Basel III API connection failed';
         document.getElementById('modisError').textContent = 'Credit scoring model unavailable';
         document.getElementById('recommendation').textContent = 'Check server connection and try again';
+        
+        // Clear farmer explanation component on error
+        const farmerContainer = document.getElementById('farmerExplanationContainer');
+        if (farmerContainer) {
+            farmerContainer.innerHTML = '<div class="error-message">⚠️ Analysis failed - please try again</div>';
+        }
     }
 }
 

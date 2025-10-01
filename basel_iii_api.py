@@ -40,6 +40,12 @@ from banking_credit_model import AgricultureMLModel
 import sys
 import os
 import traceback
+import google.generativeai as genai
+import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add current directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -50,6 +56,11 @@ CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Con
 # Configuration
 API_VERSION = "1.0.0"
 MODEL_VERSION = "Prithvi-RF-XGBoost-v2.0"
+
+# Configure Gemini API
+GEMINI_API_KEY = "***REMOVED-CREDENTIAL***"
+genai.configure(api_key=GEMINI_API_KEY)
+print(f"✅ Gemini API configured")
 
 # Global model state
 class ModelState:
@@ -829,6 +840,372 @@ def proxy_image():
 def serve_index():
     """Serve the main application"""
     return send_from_directory('.', 'index.html')
+
+@app.route('/api/farmer/explain', methods=['POST', 'OPTIONS'])
+def farmer_explanation():
+    """Generate farmer-friendly explanations using Gemini AI"""
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    
+    try:
+        print(f"🌾 Farmer explanation endpoint called")
+        data = request.get_json()
+        print(f"📥 Request data received: {data}")
+        
+        # Extract data from request
+        credit_data = data.get('creditData', {})
+        shap_data = data.get('shapData', {})
+        weather_data = data.get('weatherData', {})
+        satellite_data = data.get('satelliteData', {})
+        language = data.get('language', 'id')
+        farm_context = data.get('farmContext', {})
+        
+        print(f"🔑 GEMINI_API_KEY available: {GEMINI_API_KEY is not None}")
+        print(f"🔑 GEMINI_API_KEY length: {len(GEMINI_API_KEY) if GEMINI_API_KEY else 0}")
+        
+        # Check if Gemini API is available
+        if not GEMINI_API_KEY:
+            print(f"❌ No Gemini API key found, using fallback")
+            return jsonify({
+                'success': False,
+                'error': 'AI explanation service not available',
+                'fallback': generate_fallback_explanation(credit_data, language, farm_context)
+            }), 503
+        
+        print(f"✅ Gemini API key found, calling generate_gemini_explanation")
+        print(f"🔄 About to call generate_gemini_explanation with credit_score: {credit_data.get('credit_score')}")
+        
+        # Generate explanation using Gemini
+        explanation = generate_gemini_explanation(
+            credit_data, shap_data, weather_data, satellite_data, language, farm_context
+        )
+        
+        print(f"🔄 generate_gemini_explanation returned: {type(explanation)}")
+        print(f"🔄 explanation keys: {list(explanation.keys()) if isinstance(explanation, dict) else 'not a dict'}")
+        
+        return jsonify({
+            'success': True,
+            'explanation': explanation,
+            'language': language,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        print(f"❌ Error in farmer explanation: {str(e)}")
+        traceback.print_exc()
+        
+        # Return fallback explanation
+        fallback = generate_fallback_explanation(
+            data.get('creditData', {}), 
+            data.get('language', 'id'), 
+            data.get('farmContext', {})
+        )
+        
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'fallback': fallback
+        }), 500
+
+def generate_gemini_explanation(credit_data, shap_data, weather_data, satellite_data, language, farm_context):
+    """Generate farmer explanation using Gemini AI"""
+    import sys
+    print(f"🔍 GEMINI FUNCTION CALLED - Starting Gemini explanation generation...", flush=True)
+    sys.stdout.flush()
+    print(f"   Language: {language}", flush=True)
+    print(f"   Credit score: {credit_data.get('credit_score', 'N/A')}", flush=True)
+    print(f"   Farm context: {farm_context}", flush=True)
+    
+    try:
+        import sys
+        print(f"🤖 Initializing Gemini model...", flush=True)
+        sys.stdout.flush()
+        # Initialize Gemini model - using latest flash model for speed and cost efficiency
+        model = genai.GenerativeModel('models/gemini-2.5-flash')
+        print(f"✅ Gemini model initialized (gemini-2.5-flash)", flush=True)
+        sys.stdout.flush()
+        
+        # Prepare context for Gemini
+        print(f"📊 Preparing context for Gemini...", flush=True)
+        sys.stdout.flush()
+        context = prepare_gemini_context(credit_data, shap_data, weather_data, satellite_data, farm_context)
+        print(f"✅ Context prepared: {context}", flush=True)
+        sys.stdout.flush()
+        
+        # Create prompt based on language
+        print(f"📝 Creating prompt for language: {language}", flush=True)
+        sys.stdout.flush()
+        if language == 'id':
+            prompt = create_indonesian_prompt(context)
+        else:
+            prompt = create_english_prompt(context)
+        
+        print(f"📝 Prompt created (length: {len(prompt)} chars)", flush=True)
+        print(f"🚀 Calling Gemini API...", flush=True)
+        sys.stdout.flush()
+        
+        # Generate response from Gemini
+        response = model.generate_content(prompt)
+        print(f"✅ Gemini API responded successfully", flush=True)
+        print(f"📤 Response text: {response.text[:200]}...", flush=True)
+        sys.stdout.flush()
+        
+        # Parse the response
+        explanation = parse_gemini_response(response.text, language)
+        print(f"✅ Response parsed successfully", flush=True)
+        sys.stdout.flush()
+        
+        return explanation
+        
+    except Exception as e:
+        import sys
+        print(f"❌ GEMINI API ERROR OCCURRED: {str(e)}", flush=True)
+        print(f"❌ Error type: {type(e).__name__}", flush=True)
+        sys.stdout.flush()
+        import traceback
+        print(f"❌ Full traceback:", flush=True)
+        traceback.print_exc()
+        sys.stdout.flush()
+        # Return fallback explanation
+        print(f"🔄 Using fallback explanation", flush=True)
+        sys.stdout.flush()
+        return generate_fallback_explanation(credit_data, language, farm_context)
+
+def prepare_gemini_context(credit_data, shap_data, weather_data, satellite_data, farm_context):
+    """Prepare structured context for Gemini AI"""
+    context = {
+        'credit_score': credit_data.get('credit_score', 650),
+        'risk_level': credit_data.get('risk_level', 'medium'),
+        'approval_probability': credit_data.get('approval_probability', 0.5),
+        'farm_size': farm_context.get('farmSize', 'medium'),
+        'location': farm_context.get('location', 'java'),
+        'crop_health': farm_context.get('cropHealth', 'good'),
+        'has_weather_data': farm_context.get('hasWeatherData', False),
+        'has_satellite_data': farm_context.get('hasSatelliteData', False)
+    }
+    
+    # Add SHAP feature importance if available
+    if shap_data and 'features' in shap_data:
+        top_features = sorted(shap_data['features'], key=lambda x: abs(x.get('value', 0)), reverse=True)[:5]
+        context['key_factors'] = [
+            {
+                'name': feature.get('feature_name', ''),
+                'impact': feature.get('value', 0),
+                'description': translate_feature_name(feature.get('feature_name', ''))
+            }
+            for feature in top_features
+        ]
+    
+    return context
+
+def create_indonesian_prompt(context):
+    """Create Indonesian language prompt for Gemini"""
+    return f"""
+Anda adalah ahli pertanian dan keuangan yang membantu petani Indonesia memahami analisis kredit mereka.
+
+Data Petani:
+- Skor Kredit: {context['credit_score']}
+- Risiko: {context['risk_level']}
+- Ukuran Kebun: {context['farm_size']}
+- Lokasi: {context['location']}
+- Kesehatan Tanaman: {context['crop_health']}
+
+Tugas Anda:
+1. Jelaskan skor kredit dalam bahasa sederhana yang mudah dipahami petani
+2. Berikan 3-4 saran praktis untuk meningkatkan kondisi kredit
+3. Prioritaskan saran berdasarkan dampak dan kemudahan implementasi
+4. Gunakan terminologi pertanian Indonesia yang sesuai
+5. Berikan timeline realistis untuk setiap saran
+
+Format respon dalam JSON:
+{{
+    "summary": "Penjelasan singkat tentang kondisi kredit",
+    "credit_explanation": "Penjelasan detail skor kredit",
+    "recommendations": [
+        {{
+            "title": "Judul saran",
+            "description": "Penjelasan detail",
+            "priority": "high/medium/low",
+            "timeline": "Timeline implementasi",
+            "impact": "Dampak yang diharapkan"
+        }}
+    ],
+    "next_steps": "Langkah selanjutnya yang harus dilakukan"
+}}
+
+Fokus pada advice yang praktis dan dapat diterapkan oleh petani Indonesia.
+"""
+
+def create_english_prompt(context):
+    """Create English language prompt for Gemini"""
+    return f"""
+You are an agricultural finance expert helping Indonesian farmers understand their credit analysis.
+
+IMPORTANT: Respond in ENGLISH language only.
+
+Farmer Data:
+- Credit Score: {context['credit_score']}
+- Risk Level: {context['risk_level']}
+- Farm Size: {context['farm_size']}
+- Location: {context['location']}
+- Crop Health: {context['crop_health']}
+
+Your tasks:
+1. Explain the credit score in simple ENGLISH terms farmers can understand
+2. Provide 3-4 practical recommendations to improve credit conditions
+3. Prioritize advice by impact and ease of implementation
+4. Use appropriate Indonesian agricultural context but explain in ENGLISH
+5. Provide realistic timelines for each recommendation
+
+Format response as JSON in ENGLISH:
+{{
+    "summary": "Brief explanation of credit condition in English",
+    "credit_explanation": "Detailed credit score explanation in English",
+    "recommendations": [
+        {{
+            "title": "Recommendation title in English",
+            "description": "Detailed explanation in English",
+            "priority": "high/medium/low",
+            "timeline": "Implementation timeline in English",
+            "impact": "Expected impact in English"
+        }}
+    ],
+    "next_steps": "Next steps to take in English"
+}}
+
+Focus on practical, actionable advice for Indonesian farmers, but write everything in ENGLISH language.
+"""
+
+def parse_gemini_response(response_text, language):
+    """Parse Gemini response and structure it for the frontend"""
+    try:
+        print(f"🔍 Parsing Gemini response (length: {len(response_text)})")
+        print(f"📝 First 200 chars: {response_text[:200]}")
+        
+        # Try to extract JSON from the response - handle markdown code blocks
+        import re
+        
+        # First try to find JSON in markdown code blocks
+        markdown_json_match = re.search(r'```json\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+        if markdown_json_match:
+            json_str = markdown_json_match.group(1)
+            print(f"✅ Found JSON in markdown block")
+        else:
+            # Fallback to general JSON extraction
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if json_match:
+                json_str = json_match.group()
+                print(f"✅ Found JSON in response")
+            else:
+                print(f"❌ No JSON found in response")
+                return create_structured_response(response_text, language)
+        
+        print(f"📋 Extracted JSON (first 200 chars): {json_str[:200]}")
+        parsed = json.loads(json_str)
+        print(f"✅ Successfully parsed JSON response")
+        return parsed
+        
+    except Exception as e:
+        print(f"❌ Error parsing Gemini response: {str(e)}")
+        print(f"❌ Raw response: {response_text[:500]}")
+        return create_structured_response(response_text, language)
+
+def create_structured_response(text, language):
+    """Create a structured response from unstructured text"""
+    if language == 'id':
+        return {
+            "summary": "Analisis kredit berdasarkan data satelit dan cuaca menunjukkan kondisi yang perlu perhatian.",
+            "credit_explanation": text[:200] + "..." if len(text) > 200 else text,
+            "recommendations": [
+                {
+                    "title": "Perbaiki Catatan Keuangan",
+                    "description": "Catat semua pemasukan dan pengeluaran pertanian dengan detail",
+                    "priority": "high",
+                    "timeline": "0-30 hari",
+                    "impact": "Meningkatkan transparansi keuangan"
+                }
+            ],
+            "next_steps": "Konsultasi dengan petugas kredit untuk langkah selanjutnya"
+        }
+    else:
+        return {
+            "summary": "Credit analysis based on satellite and weather data shows areas needing attention.",
+            "credit_explanation": text[:200] + "..." if len(text) > 200 else text,
+            "recommendations": [
+                {
+                    "title": "Improve Financial Records",
+                    "description": "Keep detailed records of all farm income and expenses",
+                    "priority": "high",
+                    "timeline": "0-30 days",
+                    "impact": "Increased financial transparency"
+                }
+            ],
+            "next_steps": "Consult with credit officer for next steps"
+        }
+
+def generate_fallback_explanation(credit_data, language, farm_context):
+    """Generate fallback explanation when Gemini is not available"""
+    if language == 'id':
+        return {
+            "summary": f"Skor kredit Anda {credit_data.get('credit_score', 650)} menunjukkan kondisi yang memerlukan perbaikan.",
+            "credit_explanation": "Berdasarkan analisis data pertanian, beberapa aspek perlu ditingkatkan untuk mendapat kredit yang lebih baik.",
+            "recommendations": [
+                {
+                    "title": "Perbaiki Catatan Keuangan",
+                    "description": "Catat semua transaksi keuangan pertanian dengan rapi dan teratur",
+                    "priority": "high",
+                    "timeline": "1-30 hari",
+                    "impact": "Meningkatkan kepercayaan bank"
+                },
+                {
+                    "title": "Tingkatkan Produktivitas Lahan",
+                    "description": "Gunakan pupuk organik dan teknik pertanian modern",
+                    "priority": "medium",
+                    "timeline": "1-3 bulan",
+                    "impact": "Meningkatkan hasil panen"
+                }
+            ],
+            "next_steps": "Konsultasi dengan ahli pertanian setempat"
+        }
+    else:
+        return {
+            "summary": f"Your credit score of {credit_data.get('credit_score', 650)} indicates areas for improvement.",
+            "credit_explanation": "Based on agricultural data analysis, several aspects need enhancement for better credit access.",
+            "recommendations": [
+                {
+                    "title": "Improve Financial Records",
+                    "description": "Keep detailed and organized records of all farm financial transactions",
+                    "priority": "high",
+                    "timeline": "1-30 days",
+                    "impact": "Increased bank confidence"
+                },
+                {
+                    "title": "Enhance Land Productivity",
+                    "description": "Use organic fertilizers and modern farming techniques",
+                    "priority": "medium",
+                    "timeline": "1-3 months",
+                    "impact": "Improved harvest yields"
+                }
+            ],
+            "next_steps": "Consult with local agricultural experts"
+        }
+
+def translate_feature_name(feature_name):
+    """Translate technical feature names to farmer-friendly terms"""
+    translations = {
+        'prithvi_vegetation': 'Kesehatan Tanaman dari Satelit',
+        'weather_temperature': 'Suhu Udara',
+        'farm_size': 'Ukuran Kebun',
+        'soil_quality': 'Kesuburan Tanah',
+        'water_access': 'Akses Air',
+        'precipitation': 'Curah Hujan'
+    }
+    
+    for key, translation in translations.items():
+        if key in feature_name.lower():
+            return translation
+    
+    return feature_name.replace('_', ' ').title()
 
 @app.route('/<path:filename>')
 def serve_static(filename):

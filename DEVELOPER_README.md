@@ -1,6 +1,6 @@
-# Agri-Access Setup Guide
+# Agri-Access Developer Documentation
 
-**For Hackathon Judges & Technical Evaluation**
+**Technical Implementation Guide**
 
 ## Quick Demo Setup
 

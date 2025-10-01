@@ -31,6 +31,10 @@ flask>=2.3.0
 flask-cors>=4.0.0
 python-dotenv>=1.0.0
 
+# ===== AI INTEGRATION =====
+# Google Gemini AI for farmer explanations
+google-generativeai>=0.3.0
+
 # ===== VISUALIZATION & REPORTING =====
 matplotlib>=3.6.0
 seaborn>=0.12.0
