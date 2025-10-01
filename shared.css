@@ -13,6 +13,94 @@ body {
     color: #333;
 }
 
+/* Basel III Credit Score Display Styles */
+.basel-metrics-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 15px 0;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.basel-metric {
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+    padding: 10px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.basel-label {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+}
+
+.basel-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.score-number {
+    font-size: 3em;
+    font-weight: 700;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.score-status {
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.credit-score-display {
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.score-breakdown {
+    margin: 10px 0;
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.breakdown-item:last-child {
+    border-bottom: none;
+}
+
+.breakdown-label {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+.breakdown-value {
+    font-size: 14px;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
 /* Common button styles */
 .btn {
     border: none;

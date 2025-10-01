@@ -3,16 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agri-Access: Advanced Agricultural Credit Platform</title>
+    <title>Agri-Access: Agricultural Credit Platform</title>
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#2c5234">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Agri-Access">
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -38,64 +30,9 @@
         
     <div class="main-grid">
             <div class="control-panel">
-                <!-- Bank Staff Workflow Progress -->
-                <div class="bank-workflow-header">
-                    <h2>🏦 Alternative Credit Scoring Workflow</h2>
-                    <p>Banking API Integration Process</p>
-                </div>
-                
-                <div class="workflow-section">
-                    <div class="workflow-title">
-                        <div class="workflow-status active" id="workflowStatus1">1</div>
-                        API Data Input
-                    </div>
-                    <div class="workflow-detail">
-                        ✅ Bank submits borrower data via API integration
-                    </div>
-                </div>
-                
-                <div class="workflow-section">
-                    <div class="workflow-title">
-                        <div class="workflow-status" id="workflowStatus2">2</div>
-                        Satellite Data Fusion
-                    </div>
-                    <div class="workflow-detail">
-                        🛰️ Process Google Earth Engine, NASA GFSAD & MODIS data
-                    </div>
-                </div>
-                
-                <div class="workflow-section">
-                    <div class="workflow-title">
-                        <div class="workflow-status" id="workflowStatus3">3</div>
-                        Risk Modeling
-                    </div>
-                    <div class="workflow-detail">
-                        📊 Calculate PD, LGD, EAD using Basel III methodology
-                    </div>
-                </div>
-                
-                <div class="workflow-section">
-                    <div class="workflow-title">
-                        <div class="workflow-status" id="workflowStatus4">4</div>
-                        Alternative Credit Score
-                    </div>
-                    <div class="workflow-detail">
-                        🏦 Generate credit score (300-850) with explainable AI
-                    </div>
-                </div>
-                
-                <div class="workflow-section">
-                    <div class="workflow-title">
-                        <div class="workflow-status" id="workflowStatus5">5</div>
-                        API Response
-                    </div>
-                    <div class="workflow-detail">
-                        📤 Return risk parameters and lending recommendations
-                    </div>
-                </div>
 
                 <h2 class="section-title" style="margin-top: 25px;">
-                    📍 API Demo Data Input
+                    📍 Farm Information
                 </h2>
                 
                 <div class="form-group">
@@ -129,42 +66,18 @@
                     </select>
                 </div>
                 
-                <h3 class="section-subtitle" style="margin-top: 25px; color: #e65100; font-size: 1.1em;">
-                    📊 Basel III Risk Parameters (Optional Override)
-                </h3>
-                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                    Leave blank to use automated calculations, or enter custom values to override
-                </p>
-                
-                <div class="form-group">
-                    <label for="probabilityOfDefaultInput">Probability of Default (PD) %</label>
-                    <input type="number" id="probabilityOfDefaultInput" step="0.01" min="0" max="100" placeholder="e.g., 2.50">
-                    <small style="color: #666; font-size: 11px;">12-month default probability percentage</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="lossGivenDefaultInput">Loss Given Default (LGD) %</label>
-                    <input type="number" id="lossGivenDefaultInput" step="0.1" min="0" max="100" placeholder="e.g., 45.0">
-                    <small style="color: #666; font-size: 11px;">Expected loss percentage if default occurs</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="exposureAtDefaultInput">Exposure At Default (EAD) Rp</label>
-                    <input type="number" id="exposureAtDefaultInput" step="1000000" min="0" placeholder="e.g., 50000000">
-                    <small style="color: #666; font-size: 11px;">Credit exposure amount at time of default</small>
-                </div>
                 
                 <h3 class="section-subtitle" style="margin-top: 25px; color: #2E7D32; font-size: 1.1em;">
-                    💰 Loan Parameters
+                    💰 Loan Application
                 </h3>
                 <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                    Essential banking parameters for credit analysis
+                    Credit application details and loan requirements
                 </p>
                 
                 <div class="form-group">
-                    <label for="loanAmount">Requested Loan Amount (Rp)</label>
-                    <input type="number" id="loanAmount" step="1000000" min="1000000" placeholder="e.g., 50000000" value="50000000">
-                    <small style="color: #666; font-size: 11px;">Amount the farmer wants to borrow</small>
+                    <label for="loanAmount">Requested Loan Amount (thousand Rp)</label>
+                    <input type="number" id="loanAmount" step="1000" min="1000" placeholder="e.g., 50000" value="50000">
+                    <small style="color: #666; font-size: 11px;">Amount in thousands (e.g., 50000 = Rp 50,000,000)</small>
                 </div>
                 
                 <div class="form-group">
@@ -187,21 +100,21 @@
                 <div class="form-group">
                     <label for="collateralType">Collateral Type</label>
                     <select id="collateralType">
+                        <option value="none">No Collateral</option>
                         <option value="land">Land Title</option>
                         <option value="equipment">Agricultural Equipment</option>
                         <option value="crops">Future Crop Harvest</option>
                         <option value="mixed">Mixed Collateral</option>
-                        <option value="none">No Collateral (Unsecured)</option>
                     </select>
                 </div>
                 
                 <div class="demo-locations">
-                    <h4>🎯 Realistic Indonesian Farm Locations</h4>
+    <h4>🎯 Indonesian Farm Locations</h4>
                     <button class="demo-btn" onclick="loadDemoLocation('siti')">🌾 Indramayu Rice Farm</button>
                     <button class="demo-btn" onclick="loadDemoLocation('budi')">🌴 Riau Palm Oil Plantation</button>
                     <button class="demo-btn" onclick="loadDemoLocation('ratna')">☕ Temanggung Coffee Farm</button>
                     <div style="font-size: 10px; color: #666; margin-top: 5px;">
-                        Real coordinates from major Indonesian agricultural regions
+                        Coordinates from major Indonesian agricultural regions
                     </div>
                 </div>
                 
@@ -233,7 +146,7 @@
                     <div id="satelliteImagesGrid" class="satellite-images-grid">
                         <div style="text-align: center; color: #999; font-size: 12px; grid-column: 1 / -1; padding: 20px; background: linear-gradient(135deg, #e8f5e8, #e3f2fd); border-radius: 8px; border: 2px dashed #4CAF50;">
                             <div style="font-size: 16px; margin-bottom: 8px;">🛰️🌦️🤖</div>
-                            <strong>Advanced Analytics Ready</strong><br>
+                            <strong>Analytics Ready</strong><br>
                             Click "Analyze Credit Score" to view satellite imagery and weather data analysis
                         </div>
                     </div>
@@ -242,57 +155,43 @@
             
             <div class="results-panel">
                 <div style="background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center;">
-                    <h2 style="margin: 0; font-size: 1.3em;">📊 Alternative Credit Score API Response</h2>
-                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Basel III Compliant Risk Assessment</p>
+                    <h2 style="margin: 0; font-size: 1.3em;">📊 Basel III Credit Assessment</h2>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Processed satellite imagery, weather data, and traditional credit factors</p>
                 </div>
                 
                 <div id="successResults" class="hidden">
-                    <!-- Credit Score and Basel III Risk Parameters - Main Display -->
-                    <div class="credit-score-display">
-                        <div class="score-number" id="scoreNumber">---</div>
-                        <div class="score-status" id="scoreStatus">Basel III Compliant</div>
+                    
+                    <!-- 1. PRIMARY RESULTS: Credit Score and Key Metrics -->
+                    <div class="analysis-result">
+                        <h4>🎯 Credit Assessment Result</h4>
+                        <div id="creditScoreArc" style="min-height: 200px; margin: 15px 0;"></div>
                         
-                        <!-- Expected Credit Loss - Prominently Displayed -->
-                        <div class="basel-metrics-display">
-                            <div class="basel-metric">
-                                <div class="basel-label">Expected Credit Loss</div>
-                                <div class="basel-value" id="expectedCreditLossMain">---</div>
+                        <!-- Key Loan Decision Metrics -->
+                        <div class="key-metrics" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
+                            <div class="metric-card">
+                                <div class="metric-label">Credit Score</div>
+                                <div class="metric-value" id="creditScore">---</div>
                             </div>
-                            <div class="basel-metric">
-                                <div class="basel-label">Probability of Default</div>
-                                <div class="basel-value" id="probabilityOfDefaultMain">---</div>
+                            <div class="metric-card">
+                                <div class="metric-label">Risk Rating</div>
+                                <div class="metric-value" id="riskLevel">---</div>
                             </div>
-                            <div class="basel-metric">
-                                <div class="basel-label">Loss Given Default</div>
-                                <div class="basel-value" id="lossGivenDefaultMain">---</div>
+                            <div class="metric-card">
+                                <div class="metric-label">Approval Probability</div>
+                                <div class="metric-value" id="approvalProbability">---</div>
                             </div>
-                        </div>
-                        
-                        <div id="scoreBreakdown" class="score-breakdown" style="display: block;">
-                            <div class="breakdown-item">
-                                <span class="breakdown-label">🛰️ Satellite Data:</span>
-                                <span class="breakdown-value" id="satelliteContrib">---</span>
-                            </div>
-                            <div class="breakdown-item">
-                                <span class="breakdown-label">🌦️ Weather Analysis:</span>
-                                <span class="breakdown-value" id="weatherContrib">---</span>
+                            <div class="metric-card">
+                                <div class="metric-label">Interest Rate</div>
+                                <div class="metric-value" id="interestRate">---</div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Banking Analysis Section - Prominent Display -->
+                    <!-- 2. LOAN TERMS & APPROVAL DETAILS -->
                     <div class="analysis-result" id="creditAnalysisSection">
-                        <h4>🏦 Banking Credit Analysis</h4>
+                        <h4>💰 Loan Assessment Details</h4>
                         <div class="data-row">
-                            <span class="data-label">Credit Score:</span>
-                            <span class="data-value" id="creditScore">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Risk Level:</span>
-                            <span class="data-value" id="riskLevel">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Requested Loan Amount:</span>
+                            <span class="data-label">Requested Amount:</span>
                             <span class="data-value" id="requestedLoanAmount">---</span>
                         </div>
                         <div class="data-row">
@@ -301,145 +200,112 @@
                         </div>
                         <div class="data-row">
                             <span class="data-label">Loan Term:</span>
-                            <span class="data-value" id="loanTerm">---</span>
+                            <span class="data-value" id="loanTermDisplay">---</span>
                         </div>
-                        <div class="data-row">
-                            <span class="data-label">Interest Rate:</span>
-                            <span class="data-value" id="interestRate">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Approval Probability:</span>
-                            <span class="data-value" id="approvalProbability">---</span>
-                        </div>
+                        
+                        <!-- Basel III Risk Parameters - Collapsible -->
+                        <details class="collapsible-section" style="margin-top: 20px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #1976D2;">🏦 Basel III Risk Parameters</summary>
+                            <div class="basel-metrics-display" style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                                <div class="basel-metric">
+                                    <div class="basel-label">Expected Credit Loss</div>
+                                    <div class="basel-value" id="expectedCreditLossMain">---</div>
+                                </div>
+                                <div class="basel-metric">
+                                    <div class="basel-label">Probability of Default</div>
+                                    <div class="basel-value" id="probabilityOfDefaultMain">---</div>
+                                </div>
+                                <div class="basel-metric">
+                                    <div class="basel-label">Loss Given Default</div>
+                                    <div class="basel-value" id="lossGivenDefaultMain">---</div>
+                                </div>
+                            </div>
+                        </details>
                     </div>
                     
-                    <!-- Basel III Risk Parameters - Prominent Display -->
-                    <div class="analysis-result" id="baselIIISection">
-                        <h4>📊 Basel III Risk Parameters</h4>
-                        <div class="data-row">
-                            <span class="data-label">Expected Credit Loss:</span>
-                            <span class="data-value" id="expectedCreditLoss">---</span>
+                    
+                    
+                    <!-- 4. ENVIRONMENTAL CONDITIONS -->
+                    <details class="collapsible-section analysis-result" id="currentWeatherSection" style="display: none;">
+                        <summary style="cursor: pointer; font-weight: 600; color: #FF9800;">🌦️ Environmental Risk Assessment</summary>
+                        <div style="padding: 15px; margin-top: 10px; background: #fff3e0; border-radius: 8px;">
+                            <div class="data-row">
+                                <span class="data-label">Current Risk Level:</span>
+                                <span class="data-value" id="liveRisk">---</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Temperature:</span>
+                                <span class="data-value" id="liveTemp">---</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Humidity:</span>
+                                <span class="data-value" id="liveHumidity">---</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Conditions:</span>
+                                <span class="data-value" id="liveConditions">---</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Precipitation (7-day):</span>
+                                <span class="data-value" id="weeklyPrecip">---</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Weather Data Sources:</span>
+                                <span class="data-value" id="weatherDataSources">---</span>
+                            </div>
                         </div>
-                        <div class="data-row">
-                            <span class="data-label">Probability of Default (PD):</span>
-                            <span class="data-value" id="probabilityOfDefault">---</span>
+                    </details>
+                    
+                    <!-- 5. DATA QUALITY & TECHNICAL DETAILS - Collapsible -->
+                    <details class="collapsible-section analysis-result" id="dataQualitySection">
+                        <summary style="cursor: pointer; font-weight: 600; color: #2E7D32;">📡 Data Sources & Technical Details</summary>
+                        <div style="padding: 15px; margin-top: 10px; background: #f1f8e9; border-radius: 8px;">
+                            <div class="data-row">
+                                <span class="data-label">🌍 Google Earth Engine:</span>
+                                <span class="data-value" id="geeResult">---</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">🗺️ NASA Cropland & Vegetation:</span>
+                                <span class="data-value" id="nasaDataResult">---</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">🌦️ Weather APIs:</span>
+                                <span class="data-value" id="weatherApiResult">---</span>
+                            </div>
+                            <div id="validationResults" style="margin-top: 15px;">
+                                <!-- Cross-validation results will be populated -->
+                            </div>
+                            
+                            <!-- Analysis Components -->
+                            <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                                <h5 style="margin: 0 0 10px 0; color: #1976D2;">📊 Feature Processing Summary</h5>
+                                <div id="scoreBreakdown" class="score-breakdown" style="display: block;">
+                                    <div class="breakdown-item">
+                                        <span class="breakdown-label">🛰️ Satellite Features:</span>
+                                        <span class="breakdown-value" id="satelliteContrib">---</span>
+                                    </div>
+                                    <div class="breakdown-item">
+                                        <span class="breakdown-label">🌦️ Weather Features:</span>
+                                        <span class="breakdown-value" id="weatherContrib">---</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="data-row">
-                            <span class="data-label">Loss Given Default (LGD):</span>
-                            <span class="data-value" id="lossGivenDefault">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Exposure At Default (EAD):</span>
-                            <span class="data-value" id="exposureAtDefault">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Expected Credit Loss (ECL):</span>
-                            <span class="data-value" id="expectedCreditLossDetailed">---</span>
-                        </div>
-                        <p style="font-size: 11px; color: #999; margin-top: 10px; font-style: italic;">
-                            🔧 = Custom override value used instead of automated calculation
+                    </details>
+                    
+                    
+                    <!-- 3. FEATURE IMPORTANCE ANALYSIS -->
+                    <div class="analysis-result" id="shapAnalysisSection">
+                        <h4>🔍 Credit Score Drivers</h4>
+                        <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
+                            <strong>SHAP Analysis:</strong> Shows how each feature contributed to the final credit score (from baseline to prediction).
                         </p>
+                        <div id="shapVisualization" style="min-height: 400px;"></div>
                     </div>
                     
-                    <div class="analysis-result" id="vegetationSection" style="display: none;">
-                        <h4>🌿 Vegetation Indices (Raw Measurements)</h4>
-                        <div class="data-row">
-                            <span class="data-label">NDVI (Vegetation Index):</span>
-                            <span class="data-value" id="ndviValue">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">EVI (Enhanced Index):</span>
-                            <span class="data-value" id="eviValue">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">SAVI (Soil-Adjusted Index):</span>
-                            <span class="data-value" id="saviValue">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">NDMI (Moisture Index):</span>
-                            <span class="data-value" id="ndmiValue">---</span>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-result" id="currentWeatherSection" style="display: none;">
-                        <h4>🌦️ Current Conditions</h4>
-                        <div class="data-row">
-                            <span class="data-label">Temperature:</span>
-                            <span class="data-value" id="liveTemp">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Humidity:</span>
-                            <span class="data-value" id="liveHumidity">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Conditions:</span>
-                            <span class="data-value" id="liveConditions">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Risk Level:</span>
-                            <span class="data-value" id="liveRisk">---</span>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-result" id="weatherAnalysisSection" style="display: none;">
-                        <h4>🌦️ Weather Measurements</h4>
-                        <div class="data-row">
-                            <span class="data-label">Current Temperature:</span>
-                            <span class="data-value" id="currentTemp">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Humidity:</span>
-                            <span class="data-value" id="currentHumidity">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Precipitation (7-day):</span>
-                            <span class="data-value" id="weeklyPrecip">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Weather Data Sources:</span>
-                            <span class="data-value" id="weatherDataSources">---</span>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-result" id="dataQualitySection">
-                        <h4>📡 Data Sources & Quality Assessment</h4>
-                        <div class="data-row">
-                            <span class="data-label">🌍 Google Earth Engine:</span>
-                            <span class="data-value" id="geeResult">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">🗺️ NASA Cropland Data:</span>
-                            <span class="data-value" id="gfsadResult">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">🌱 NASA Vegetation Data:</span>
-                            <span class="data-value" id="modisResult">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">🌦️ Weather APIs:</span>
-                            <span class="data-value" id="weatherApiResult">---</span>
-                        </div>
-                        <div id="validationResults" style="margin-top: 15px;">
-                            <!-- Cross-validation results will be populated -->
-                        </div>
-                    </div>
-                    
-                    
-                    <div class="analysis-result" id="keyFactorsSection">
-                        <h4>🔍 Credit Factors (Banking Model)</h4>
-                        <div class="explanation-flow">
-                            <div class="process-indicator">
-                                <span class="process-arrow-horizontal">📥 → 🏦 Banking Model → 📤</span>
-                                <span class="process-description">Farm data processed by banking credit model</span>
-                            </div>
-                            <div id="topFactors" class="output-factors">
-                                <!-- Factors will be populated by JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                    
+                    <!-- 6. RECOMMENDATIONS -->
                     <div class="analysis-result" id="improvementSection">
-                        <h4>💡 Improvement Suggestions</h4>
+                        <h4>💡 Risk Mitigation Recommendations</h4>
                         <div id="improvementSuggestions">
                             <!-- Suggestions will be populated by JavaScript -->
                         </div>
@@ -468,33 +334,6 @@
                     </div>
                 </div>
                 
-                <div id="defaultInfo">
-                    <div class="analysis-result">
-                        <h4>🎯 Alternative Credit Scoring Platform</h4>
-                        <p style="font-size: 13px; line-height: 1.5; color: #666;">
-                            <strong>🏦 B2B Banking Infrastructure:</strong><br>
-                            • Alternative credit scores for financial institutions<br>
-                            • Similar to TransUnion but for agricultural lending<br>
-                            • API integration for real-time risk assessment<br><br>
-                            
-                            <strong>📊 Basel III Compliance:</strong><br>
-                            • Probability of Default (PD) calculations<br>
-                            • Loss Given Default (LGD) modeling<br>
-                            • Exposure at Default (EAD) assessments<br>
-                            • Expected Credit Loss (ECL) reporting<br><br>
-                            
-                            <strong>🛰️ Satellite Data Sources:</strong><br>
-                            • Google Earth Engine: 10m resolution crop monitoring<br>
-                            • NASA GFSAD: Cropland classification validation<br>
-                            • NASA MODIS: Historical vegetation trend analysis<br><br>
-                            
-                            <strong>🤖 Explainable AI:</strong><br>
-                            • Machine learning with transparent decision factors<br>
-                            • SLIK-compatible scoring (300-850 range)<br>
-                            • Real-time API responses in 3-5 seconds
-                        </p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -535,6 +374,10 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Credit Score Arc Component -->
+    <script src="credit-score-arc.js"></script>
+    <!-- SHAP Visualization Component -->
+    <script src="shap-visualization.js"></script>
     <!-- Agri-Access Shared Libraries -->
     <script src="shared.js"></script>
     <!-- Agri-Access Application -->

@@ -4,6 +4,29 @@
 # Core Python libraries for banking credit model
 numpy>=1.21.0
 
+# ML Dependencies for Prithvi-EO-2.0 + Random Forest + SHAP Pipeline
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.35.0
+scikit-learn>=1.3.0
+xgboost>=1.7.0
+shap>=0.42.0
+pandas>=1.5.0
+matplotlib>=3.6.0
+seaborn>=0.12.0
+pillow>=9.0.0
+requests>=2.28.0
+
+# Prithvi-EO-2.0-300M specific dependencies
+timm>=0.9.0
+rasterio>=1.3.0
+numpy>=1.21.0
+
+# Flask dependencies
+flask>=2.3.0
+flask-cors>=4.0.0
+python-dotenv>=1.0.0
+
 # Standard library (no additional dependencies required)
 # The banking_credit_model.py uses only standard Python libraries:
 # - sys, json, math, datetime (built-in)
