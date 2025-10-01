@@ -9,9 +9,9 @@ Agri-Access is a B2B agricultural credit scoring platform that provides banks wi
 
 ### Key Capabilities
 - 🧠 **IBM/NASA Prithvi-EO-2.0-300M**: 300M parameter foundation model for satellite analysis
-- 🛰️ **Live NASA GIBS Processing**: Real-time satellite imagery from Landsat, Sentinel-2, MODIS
-- 🌦️ **Multi-Weather Integration**: OpenWeatherMap, Open-Meteo, BMKG Indonesia
-- 🤖 **Random Forest ML**: Multi-target prediction with Prithvi-derived features
+- 🛰️ **Live NASA GIBS/CMR Processing**: Real-time satellite imagery from MODIS and GFSAD30SEACE
+- 🌦️ **Multi-Weather Integration**: OpenWeatherMap, BMKG Indonesia
+- 🤖 **Random Forest + XGBoost**: Multi-target ensemble with Prithvi-derived features
 - 📊 **SHAP Explainability**: Transparent foundation model feature importance
 - 🏦 **Basel III Compliance**: ECL calculation and risk parameter reporting
 - 🇮🇩 **Indonesian Banking**: SLIK collectibility system (1-5 scale)
@@ -20,7 +20,7 @@ Agri-Access is a B2B agricultural credit scoring platform that provides banks wi
 
 ### Data Flow Pipeline
 ```
-Farm Coordinates → NASA GIBS → Prithvi-EO-2.0-300M → Weather Data → Random Forest → Basel III → SLIK Score
+Farm Coordinates → NASA GIBS → Prithvi-EO-2.0-300M → OpenWeatherMap → RF+XGBoost → Basel III → SLIK Score
        ↓              ↓              ↓                    ↓              ↓            ↓          ↓
 Location Input → Satellite Tiles → 768-dim Features → Risk Features → ML Prediction → ECL Calc → Credit Decision
 ```
@@ -29,7 +29,7 @@ Location Input → Satellite Tiles → 768-dim Features → Risk Features → ML
 - **Frontend**: `index.html` + `app.js` + visualization components
 - **API Server**: `basel_iii_api.py` (Flask with CORS)
 - **Prithvi Integration**: `prithvi_extractor.py` (IBM/NASA foundation model)
-- **ML Model**: `banking_credit_model.py` (Random Forest + SHAP)
+- **ML Model**: `banking_credit_model.py` (Random Forest + XGBoost + SHAP)
 - **Visualizations**: `credit-score-arc.js`, `shap-visualization.js`
 
 ### System Requirements
@@ -42,49 +42,60 @@ Location Input → Satellite Tiles → 768-dim Features → Risk Features → ML
 
 ### Satellite Feature Extraction 
 
-**Data Sources via NASA GIBS API:**
-- **Landsat 8**: BRDF Corrected True Color (30m) + Thermal IR (100m)
-- **Sentinel-2**: Chlorophyll analysis (10m) + Short-Wave Infrared (10m) 
-- **MODIS**: NDVI 8-Day composite (250m)
-- **IMERG**: GPM Satellite Precipitation Rate (10km)
-- **GFSAD30SEACE**: Global Food Security-support Analysis Data (30m cropland classification)
+**Data Sources via NASA GIBS & CMR APIs:**
+- **MODIS Terra/Aqua**: True Color Corrected Reflectance (250m)
+- **MODIS Terra**: False Color Bands 7-2-1 for vegetation analysis (250m)  
+- **MODIS Terra**: Agriculture Bands 3-6-7 for crop analysis (250m)
+- **GFSAD30SEACE**: Global Food Security-support Analysis Data via NASA CMR (30m cropland classification)
 
 **Feature Extraction Method:**
 - **Prithvi Foundation Model**: IBM/NASA's `Prithvi-EO-2.0-300M` transformer
-  - 300M parameter model pre-trained on satellite imagery
-  - Real-time processing of NASA GIBS satellite tiles
-  - High-dimensional embeddings (768 features per image source)
-  - Automatic fallback to enhanced synthetic features if model unavailable
+  - **Background**: NASA's first AI foundation model for Earth observation, developed in collaboration with IBM Research
+  - **Architecture**: 300M parameter Vision Transformer (ViT) trained on NASA's Harmonized Landsat Sentinel-2 (HLS) dataset
+  - **Training Data**: Multi-temporal, multi-spectral satellite imagery covering 1 million locations globally
+  - **Capabilities**: Self-supervised learning for Earth system science applications including agriculture, disaster response, and climate monitoring
+  - **Real-time processing**: NASA GIBS satellite tiles processed through foundation model pipeline
+  - **Output**: High-dimensional embeddings (768 features per image source) optimized for agricultural assessment
+  - **Fallback**: Enhanced synthetic features with agricultural domain knowledge when model unavailable
 
 **Feature Pipeline:**
-1. Download satellite images from NASA GIBS for farm location
-2. Process images through Prithvi transformer model
+1. Download satellite images from NASA GIBS/CMR for farm location
+2. Process images through Prithvi transformer model (fallback to synthetic features)
 3. Extract 768-dimensional feature embeddings per image source
-4. Aggregate features from multiple satellite sources (Landsat, Sentinel-2, MODIS)
+4. Aggregate features from multiple MODIS sources and GFSAD30SEACE
 5. Compute agricultural indices (vegetation health, crop stress, water content)
 6. Normalize and pad to 256 features for ML model compatibility
 
 ### Weather Feature Processing (64 Features)
-- **Current Conditions**: Temperature, humidity, pressure, wind speed
-- **7-Day Forecasts**: Precipitation probability, temperature trends
-- **Risk Indicators**: Drought conditions, extreme weather alerts
-- **Seasonal Patterns**: Historical weather analysis
+- **Current Conditions**: Temperature, humidity, rainfall, wind speed, pressure from OpenWeatherMap
+- **Derived Indices**: Heat index, vapor pressure deficit, crop suitability
+- **Regional Factors**: Indonesian climate pattern adjustments via BMKG
+- **Crop-Specific**: Weather suitability per crop type (rice, palm oil, coffee)
 
 ### Machine Learning Pipeline
-- **Algorithm**: Random Forest Regressor (scikit-learn)
-- **Multi-Target Prediction**: Simultaneous prediction of 4 targets
+- **Algorithm**: Random Forest + XGBoost ensemble model with Prithvi-EO-2.0-300M integration
+- **Ensemble Architecture**: 
+  - Random Forest (70% weight): Primary model trained on 1000 synthetic Indonesian agricultural samples
+  - XGBoost (30% weight): Gradient boosting component for enhanced prediction accuracy
+- **Multi-Target Prediction**: Simultaneous prediction of 4 Basel III parameters
   - PD (Probability of Default)
   - LGD (Loss Given Default) 
   - EAD (Exposure at Default)
   - Credit Score (300-850 scale → converted to SLIK 1-5)
-- **Feature Engineering**: 320 total features (256 satellite + 64 weather + traditional)
-- **Training Data**: Synthetic dataset with Indonesian agricultural patterns
+- **Feature Engineering**: 320 total features (256 Prithvi satellite + 64 weather + traditional)
+- **Training Strategy**: Self-supervised learning on Indonesian agricultural patterns with crop-specific risk modeling
 
-### SHAP Explainability
-- **TreeExplainer**: Optimized for Random Forest models
-- **Waterfall Visualization**: Feature contribution from baseline to prediction
-- **Feature Categories**: Ranked importance of satellite vs weather vs traditional factors
-- **Regulatory Compliance**: Transparent model explanations for banking requirements
+### SHAP Explainability & Normalization
+- **TreeExplainer**: Optimized for Random Forest ensemble with exact SHAP value computation
+- **Feature Attribution**: Individual Prithvi-derived satellite feature contributions to predictions
+- **Normalized Scales**: Both credit scores and SHAP values normalized to consistent 0-1 scale for interpretability
+  - **Credit Score**: 300-850 range normalized to 0-1 scale (0.0 = 300, 1.0 = 850)
+  - **SHAP Values**: Raw impact values normalized to ±1.0 scale based on maximum feature impact
+  - **Model Baseline**: Average expected prediction (≈0.6364 for 650 credit score)
+  - **Impact Strength**: Categorized as high (>0.5), medium (0.2-0.5), or low (<0.2) based on normalized values
+- **Waterfall Visualization**: Feature contribution from baseline to prediction showing satellite, weather, and traditional factor impacts
+- **Top-10 Features**: Ranked importance of most influential features for each prediction
+- **Regulatory Compliance**: Transparent model explanations meeting Basel III and OJK requirements
 
 ### Basel III Integration
 - **Expected Credit Loss**: ECL = PD × LGD × EAD
@@ -95,17 +106,17 @@ Location Input → Satellite Tiles → 768-dim Features → Risk Features → ML
 ## Data Sources & Integration
 
 ### Active Data Sources
-1. **NASA GIBS & CMR** - Satellite imagery and precipitation data
-   - Landsat 8 BRDF corrected true color and thermal data
-   - Sentinel-2 chlorophyll and short-wave infrared analysis  
-   - MODIS NDVI 8-day vegetation composites
-   - IMERG GPM precipitation rate measurements
+1. **NASA GIBS & CMR** - Satellite imagery and cropland data
+   - MODIS Terra/Aqua true color corrected reflectance
+   - MODIS Terra false color vegetation analysis (Bands 7-2-1)
+   - MODIS Terra agriculture analysis (Bands 3-6-7)
    - GFSAD30SEACE cropland classification via NASA CMR API
 
 2. **Weather APIs** - Multi-source weather integration
-   - OpenWeatherMap: Current conditions and 5-day forecasts
-   - Open-Meteo: Historical weather and 7-day forecasts
+   - OpenWeatherMap: Current conditions and forecasts
    - BMKG Indonesia: National weather service integration
+   - Location-based temperature, humidity, and rainfall data
+   - Crop-specific weather suitability calculations
 
 3. **ML Pipeline** - Synthetic feature generation
    - Location-based agricultural suitability modeling
@@ -193,7 +204,7 @@ Location Input → Satellite Tiles → 768-dim Features → Risk Features → ML
 - **Response Time**: 3-5 seconds for complete analysis
 - **Throughput**: 100+ requests/minute on single instance
 - **Memory Usage**: ~150MB baseline, 300MB under load
-- **CPU Usage**: Moderate (Random Forest inference)
+- **CPU Usage**: Moderate (Random Forest + XGBoost inference)
 
 ### Scaling Considerations
 - **Horizontal Scaling**: Stateless Flask application
@@ -234,9 +245,6 @@ python basel_iii_api.py
 ```bash
 # Optional: Override default port
 FLASK_PORT=5000
-
-# Optional: Google Earth Engine service account
-GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
 ```
 
 ## Testing & Quality Assurance
