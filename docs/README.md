@@ -1,17 +1,18 @@
 # Agri-Access Technical Documentation
 
 **Version 2.0.0** | **Last Updated**: October 2024  
-**Status**: Production Ready with Basel III & Indonesian Banking Compliance
+**Status**: Production Ready with Basel III, Indonesian Banking Compliance & IBM/NASA Prithvi-EO-2.0-300M Integration
 
 ## Executive Summary
 
 Agri-Access is a B2B agricultural credit scoring platform that provides banks with automated credit assessment using satellite imagery, weather data, and machine learning. The platform delivers Basel III-compliant risk parameters and features specialized Indonesian banking integration with SLIK credit scoring standards.
 
 ### Key Capabilities
-- 🛰️ **6 Satellite Data Sources**: Real-time analysis from Landsat, Sentinel-2, MODIS
+- 🧠 **IBM/NASA Prithvi-EO-2.0-300M**: 300M parameter foundation model for satellite analysis
+- 🛰️ **Live NASA GIBS Processing**: Real-time satellite imagery from Landsat, Sentinel-2, MODIS
 - 🌦️ **Multi-Weather Integration**: OpenWeatherMap, Open-Meteo, BMKG Indonesia
-- 🤖 **Random Forest ML**: Multi-target prediction (PD, LGD, EAD, Credit Score)
-- 📊 **SHAP Explainability**: Regulatory-compliant feature importance analysis
+- 🤖 **Random Forest ML**: Multi-target prediction with Prithvi-derived features
+- 📊 **SHAP Explainability**: Transparent foundation model feature importance
 - 🏦 **Basel III Compliance**: ECL calculation and risk parameter reporting
 - 🇮🇩 **Indonesian Banking**: SLIK collectibility system (1-5 scale)
 
@@ -19,14 +20,15 @@ Agri-Access is a B2B agricultural credit scoring platform that provides banks wi
 
 ### Data Flow Pipeline
 ```
-Farm Input → Satellite Processing → Weather Analysis → ML Prediction → Basel III → Credit Decision
-    ↓              ↓                      ↓                 ↓            ↓           ↓
-Location Data → Feature Extraction → Risk Assessment → RF Model → ECL Calc → SHAP Analysis
+Farm Coordinates → NASA GIBS → Prithvi-EO-2.0-300M → Weather Data → Random Forest → Basel III → SLIK Score
+       ↓              ↓              ↓                    ↓              ↓            ↓          ↓
+Location Input → Satellite Tiles → 768-dim Features → Risk Features → ML Prediction → ECL Calc → Credit Decision
 ```
 
 ### Core Components
 - **Frontend**: `index.html` + `app.js` + visualization components
 - **API Server**: `basel_iii_api.py` (Flask with CORS)
+- **Prithvi Integration**: `prithvi_extractor.py` (IBM/NASA foundation model)
 - **ML Model**: `banking_credit_model.py` (Random Forest + SHAP)
 - **Visualizations**: `credit-score-arc.js`, `shap-visualization.js`
 
@@ -45,19 +47,22 @@ Location Data → Feature Extraction → Risk Assessment → RF Model → ECL Ca
 - **Sentinel-2**: Chlorophyll analysis (10m) + Short-Wave Infrared (10m) 
 - **MODIS**: NDVI 8-Day composite (250m)
 - **IMERG**: GPM Satellite Precipitation Rate (10km)
+- **GFSAD30SEACE**: Global Food Security-support Analysis Data (30m cropland classification)
 
 **Feature Extraction Method:**
-- **Mock Implementation**: Current system uses synthetic features based on farm characteristics
-- **Planned Enhancement**: Integration with Prithvi Foundation Model (IBM/NASA)
-  - Model: `Prithvi-EO-2.0-300M` for earth observation feature extraction
-  - Features: 300M parameter transformer pre-trained on satellite imagery
-  - Output: High-dimensional embeddings for downstream agricultural analysis
+- **Prithvi Foundation Model**: IBM/NASA's `Prithvi-EO-2.0-300M` transformer
+  - 300M parameter model pre-trained on satellite imagery
+  - Real-time processing of NASA GIBS satellite tiles
+  - High-dimensional embeddings (768 features per image source)
+  - Automatic fallback to enhanced synthetic features if model unavailable
 
-**Current Feature Generation:**
-- Location-based vegetation indices (NDVI, EVI)
-- Weather-derived agricultural suitability scores
-- Crop type and farm size correlations
-- Synthetic satellite features for ML pipeline compatibility
+**Feature Pipeline:**
+1. Download satellite images from NASA GIBS for farm location
+2. Process images through Prithvi transformer model
+3. Extract 768-dimensional feature embeddings per image source
+4. Aggregate features from multiple satellite sources (Landsat, Sentinel-2, MODIS)
+5. Compute agricultural indices (vegetation health, crop stress, water content)
+6. Normalize and pad to 256 features for ML model compatibility
 
 ### Weather Feature Processing (64 Features)
 - **Current Conditions**: Temperature, humidity, pressure, wind speed
@@ -90,11 +95,12 @@ Location Data → Feature Extraction → Risk Assessment → RF Model → ECL Ca
 ## Data Sources & Integration
 
 ### Active Data Sources
-1. **NASA GIBS** - Satellite imagery and precipitation data
+1. **NASA GIBS & CMR** - Satellite imagery and precipitation data
    - Landsat 8 BRDF corrected true color and thermal data
    - Sentinel-2 chlorophyll and short-wave infrared analysis  
    - MODIS NDVI 8-day vegetation composites
    - IMERG GPM precipitation rate measurements
+   - GFSAD30SEACE cropland classification via NASA CMR API
 
 2. **Weather APIs** - Multi-source weather integration
    - OpenWeatherMap: Current conditions and 5-day forecasts

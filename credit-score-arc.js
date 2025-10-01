@@ -83,15 +83,15 @@ class CreditScoreArc {
             
             .credit-score-display {
                 position: absolute;
-                bottom: -30%;
+                bottom: -40%;
                 left: 50%;
                 transform: translateX(-50%);
                 text-align: center;
                 pointer-events: none;
                 background: none;
                 border: none;
-                padding: 0 0 20px 0;
-                margin-bottom: 10px;
+                padding: 0 0 40px 0;
+                margin-bottom: 30px;
                 box-shadow: none;
             }
             

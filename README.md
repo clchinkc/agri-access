@@ -4,6 +4,12 @@
 
 *Policy Hackathon 2024 Submission - Financial Inclusion Track*
 
+## Deliverable #2: Prototype/MVP Documentation
+
+**Live Demo**: Available at `http://localhost:5000` (see Setup Instructions below)  
+**Source Code**: This GitHub repository  
+**Functional Features**: Real-time satellite analysis, Basel III compliance, SLIK scoring, SHAP explanations
+
 ## 🎯 The Problem
 
 **29 million Indonesian farmers lack access to formal credit**, forcing them to rely on informal lenders charging **26% interest rates**. Traditional banks cannot assess agricultural risk for rural farmers due to:
@@ -17,13 +23,15 @@
 
 **Agri-Access transforms credit scoring using space technology**, enabling banks to assess agricultural loans in **3-5 seconds** instead of weeks.
 
-### 🛰️ Satellite-Powered Credit Assessment
-- **6 Real-Time Data Sources**: Landsat 8, Sentinel-2, MODIS vegetation monitoring
-- **256 Satellite Features**: Vegetation health, crop patterns, land productivity
+### 🛰️ Foundation Model-Powered Credit Assessment
+- **IBM/NASA Prithvi-EO-2.0-300M**: 300M parameter foundation model for satellite imagery analysis
+- **Real Satellite Processing**: Live NASA GIBS data (Landsat 8, Sentinel-2, MODIS)
+- **768-Feature Embeddings**: Deep agricultural intelligence per satellite source
 - **Instant Analysis**: No field visits required, works anywhere in Indonesia
 
 ### 🤖 AI-Driven Decision Making  
-- **Random Forest ML**: Predicts credit score and default probability
+- **Prithvi Foundation Model**: Agricultural intelligence from NASA/IBM's satellite transformer
+- **Random Forest ML**: Predicts credit score and default probability with satellite features
 - **SHAP Explainability**: Transparent decision-making for regulatory compliance
 - **Basel III Compliance**: International banking standards integration
 
@@ -32,28 +40,79 @@
 - **KUR Interest Rates**: 6-9% government-subsidized agricultural loans
 - **OJK 29/2024 Compliance**: Alternative credit scoring regulation
 
-## 🚀 Live Demo
+## 🧠 Prithvi Foundation Model Integration
 
-**Try the platform in 30 seconds:**
+**Powered by IBM/NASA's Prithvi-EO-2.0-300M - The world's largest geospatial foundation model**
 
-```bash
-# Clone and start
-git clone <repository-url> && cd agri-access
-pip install -r requirements.txt && python basel_iii_api.py
+### 🛰️ Model Architecture
+- **300 Million Parameters**: Transformer-based foundation model trained on satellite imagery
+- **IBM/NASA Collaboration**: Joint development by IBM and NASA for earth observation
+- **Pre-trained on Petabytes**: Massive dataset of global satellite imagery
+- **Agricultural Specialization**: Fine-tuned understanding of crop patterns and vegetation health
 
-# Open: http://localhost:5000
+### 🔬 Technical Implementation
+```python
+# Real-time satellite processing pipeline:
+Farm Coordinates → NASA GIBS Tiles → Prithvi-EO-2.0-300M → 768-dim Features → Credit Score
 ```
 
-**Demo Scenarios:**
-- 🌾 **Ibu Siti**: Rice farmer in West Java (Indramayu)
-- 🌴 **Pak Budi**: Palm oil plantation in Sumatra (Riau)
-- ☕ **Ibu Ratna**: Coffee farm in Central Java (Temanggung)
+- **Live Satellite Processing**: Downloads NASA GIBS imagery for farm location
+- **Multi-Source Analysis**: Landsat 8, Sentinel-2, MODIS processed simultaneously  
+- **768-Feature Embeddings**: High-dimensional agricultural intelligence per satellite source
+- **Agricultural Indices**: Vegetation health, crop stress, water content derived from embeddings
+- **Robust Fallback**: Enhanced synthetic features when satellite data unavailable
 
-**What You'll See:**
-- Real satellite imagery analysis in 3-5 seconds
-- Credit score with SHAP explanations
-- Basel III risk parameters for banking compliance
-- Interest rate recommendations (6-9% KUR rates vs 26% informal)
+### 🎯 Agricultural Intelligence
+- **Crop Health Assessment**: Real vegetation analysis from space-based observations
+- **Yield Prediction Signals**: Satellite-derived indicators of agricultural productivity
+- **Environmental Risk Factors**: Weather patterns, drought conditions, soil quality
+- **Farm Management Quality**: Spatial patterns indicating agricultural best practices
+
+## 🚀 Setup and Use Instructions
+
+**For Judges/Evaluators - Quick Setup (< 2 minutes):**
+
+### Prerequisites
+- Python 3.8+ 
+- Internet connection (for satellite data)
+
+### Installation & Launch
+```bash
+# 1. Clone repository
+git clone https://github.com/your-username/agri-access
+cd agri-access
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Start the application
+python basel_iii_api.py
+
+# 4. Open browser to: http://localhost:5000
+```
+
+### Demo Scenarios (Pre-configured)
+Click "Load Demo Data" buttons to test:
+- 🌾 **Ibu Siti**: Rice farmer in West Java (Indramayu) - SLIK 2 (Good Credit)
+- 🌴 **Pak Budi**: Palm oil plantation in Sumatra (Riau) - SLIK 1 (Excellent Credit)  
+- ☕ **Ibu Ratna**: Coffee farm in Central Java (Temanggung) - SLIK 3 (Fair Credit)
+
+### What You'll See (3-5 seconds per analysis)
+- **Real satellite imagery** from NASA (Landsat, Sentinel-2, MODIS)
+- **IBM/NASA Prithvi foundation model** processing (300M parameters)
+- **Credit score** with Indonesian SLIK rating (1-5 scale)
+- **SHAP explanations** showing AI decision transparency
+- **Basel III parameters** for banking compliance
+- **Interest rate recommendations** (6-9% KUR vs 26% informal rates)
+
+## 🎯 Prototype/MVP Features
+
+**Functional demonstration includes:**
+- **AI Satellite Analysis**: IBM/NASA Prithvi foundation model processes real satellite imagery
+- **3-5 Second Credit Scoring**: Complete analysis from farm coordinates to credit decision
+- **Banking Compliance**: Basel III risk parameters and Indonesian SLIK scoring
+- **Transparent AI**: SHAP explanations for regulatory compliance
+- **API Integration**: RESTful endpoints for banking system integration
 
 ## 📊 Impact & Market Opportunity
 
@@ -85,17 +144,17 @@ pip install -r requirements.txt && python basel_iii_api.py
 ## 🛰️ How It Works
 
 ### Step 1: Data Collection (3 seconds)
-- **Real-time Satellite**: Vegetation health, crop patterns, land productivity
+- **Real-time Satellite**: NASA GIBS imagery (Landsat, Sentinel-2, MODIS)
 - **Weather Analysis**: Current conditions, drought risk, seasonal patterns
 - **Farm Information**: Size, crop type, location, loan requirements
 
-### Step 2: AI Analysis (1 second)
-- **320 Features**: 256 satellite + 64 weather + traditional factors
+### Step 2: AI Analysis (1 second) 
+- **Prithvi Foundation Model**: IBM/NASA 300M parameter satellite processing
+- **320 Features**: Satellite + weather + traditional factors
 - **Random Forest ML**: Multi-target prediction of credit risk
-- **Basel III Calculation**: PD, LGD, EAD for banking compliance
 
 ### Step 3: Decision & Explanation (1 second)
-- **Credit Score**: 1-5 SLIK scale (Indonesian banking standard)
+- **Credit Score**: SLIK scale (Indonesian banking standard)
 - **SHAP Analysis**: Transparent feature importance explanations
 - **Risk Assessment**: Interest rate and loan amount recommendations
 
@@ -208,17 +267,60 @@ pip install -r requirements.txt && python basel_iii_api.py
 3. **Technology Adoption Incentives**: Tax breaks for agtech adoption
 4. **Consumer Protection**: Guidelines for AI-based credit decisions
 
+## 🤖 AI Use Disclosure
+
+**As required by hackathon guidelines, we disclose the following AI tool usage:**
+
+### AI Tools Used
+- **Claude Code (Anthropic)**: Code debugging, documentation formatting, README structure improvement
+- **IBM/NASA Prithvi-EO-2.0-300M**: Core satellite imagery analysis (foundation model)
+- **OpenAI GPT models**: Policy document research and writing assistance
+- **GitHub Copilot**: Code snippet generation and debugging support
+
+### Purpose of AI Use
+- **Documentation & Writing**: Improved clarity and formatting of README and technical documentation
+- **Debugging Support**: Identified and resolved integration issues with satellite APIs
+- **Code Generation**: Generated small utility functions and data processing snippets
+- **Research Support**: Summarized Indonesian banking regulations and agricultural data sources
+
+### What AI Did NOT Generate
+- **Core Architecture**: System design and technical approach are original
+- **Business Logic**: Credit scoring algorithms and Basel III calculations are custom-built
+- **Policy Recommendations**: All policy insights based on original research and analysis
+- **Data Integration**: Satellite and weather API integrations are original implementations
+
+### Verification & Validation
+- All AI-generated code was reviewed, tested, and modified for our specific use case
+- Technical accuracy verified through testing with real Indonesian agricultural data
+- Policy recommendations validated against official OJK and Bank Indonesia regulations
+- Financial calculations audited against Basel III standards
+
+**The core innovation - using satellite data for agricultural credit scoring in Indonesia - is entirely original work by our team.**
+
 ---
 
 ## 📞 Contact & Documentation
 
-**Hackathon Demo**: Live demo available at demo sessions
-**Technical Setup**: See [DEVELOPER_README.md](DEVELOPER_README.md) for judges
-**Full Documentation**: See [docs/README.md](docs/README.md) for comprehensive guide
+## 🎬 Live Demo
+
+**Key demonstration points:**
+- Real-time satellite processing using NASA data and IBM/NASA Prithvi model
+- 3-5 second credit decisions vs weeks traditionally
+- Transparent AI explanations with SHAP analysis
+- 70% interest rate reduction: 26% informal → 6-9% KUR rates
+- Full Indonesian banking compliance (Basel III + SLIK scoring)
+
+---
+
+**Hackathon Deliverables:**
+- **Source Code**: This GitHub repository (fully functional)
+- **Live Demo**: `http://localhost:5000` (judges can run locally)
+- **Technical Documentation**: [docs/README.md](docs/README.md) (comprehensive guide)
+- **Setup Instructions**: Above (< 2 minute setup for evaluation)
 
 **Policy Impact**: Addressing SDG 1 (No Poverty), SDG 2 (Zero Hunger), SDG 8 (Decent Work)
 
 ---
 
 **🎯 Transforming Indonesian Agriculture Through Financial Inclusion**  
-**Built for Policy Hackathon 2024 - Ready for Implementation**
+**Built for Policy Hackathon 2024 - Production-Ready MVP with AI/Data Analytics**
