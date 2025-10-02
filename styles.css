@@ -559,7 +559,7 @@ body {
     background: linear-gradient(135deg, #e8f5e8, #c8e6c8);
     padding: 30px;
     border-radius: 15px;
-    margin-bottom: 25px;
+    margin: 40px 0 25px 0;
     box-shadow: 0 6px 20px rgba(46, 125, 50, 0.15);
     border: 2px solid rgba(76, 175, 80, 0.2);
 }

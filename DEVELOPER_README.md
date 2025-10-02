@@ -36,7 +36,7 @@ Click any of the pre-configured farm location buttons:
 - ☕ **Temanggung Coffee Farm** (Central Java) - Mountain coffee cultivation
 
 ### 3. Analyze Credit
-Click "🚀 Analyze Credit Score" button to start the analysis
+Click "🚀 Analyze Credit Risk" button to start the analysis
 
 ### 4. Review Results (3-5 seconds processing)
 The platform displays:

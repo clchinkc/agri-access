@@ -90,7 +90,7 @@ class CreditScoreArc {
                 pointer-events: none;
                 background: none;
                 border: none;
-                padding: 0 0 40px 0;
+                padding: 40px 0 40px 0;
                 margin-bottom: 30px;
                 box-shadow: none;
             }

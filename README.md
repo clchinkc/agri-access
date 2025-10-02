@@ -42,7 +42,7 @@ python3 basel_iii_api.py
 
 ### Demo Instructions
 1. **Select demo farmer**: Click Any Demo Data for pre-configured scenarios
-2. **Run analysis**: Click "Analyze Credit Score" (3-5 second processing)
+2. **Run analysis**: Click "Analyze Credit Risk" (3-5 second processing)
 3. **View results**: Credit score, satellite imagery, AI explanations, risk parameters
 
 ### Demo Scenarios

@@ -1249,7 +1249,7 @@ function clearResults() {
         <div style="text-align: center; color: #999; font-size: 12px; grid-column: 1 / -1; padding: 20px; background: linear-gradient(135deg, #e8f5e8, #e3f2fd); border-radius: 8px; border: 2px dashed #4CAF50;">
             <div style="font-size: 16px; margin-bottom: 8px;">🛰️🌦️🤖</div>
             <strong>Analytics Ready</strong><br>
-            Click "Analyze Credit Score" to view satellite imagery and weather data analysis
+            Click "Analyze Credit Risk" to view satellite imagery and weather data analysis
         </div>
     `;
 }

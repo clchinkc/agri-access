@@ -1000,80 +1000,92 @@ def prepare_gemini_context(credit_data, shap_data, weather_data, satellite_data,
 
 def create_indonesian_prompt(context):
     """Create Indonesian language prompt for Gemini"""
+    key_factors_text = ""
+    if 'key_factors' in context and context['key_factors']:
+        factors_list = [f"- {factor['description']}: {factor['impact']:.3f}" for factor in context['key_factors']]
+        key_factors_text = f"\nFaktor Kredit Utama:\n" + "\n".join(factors_list)
+    
     return f"""
-Anda adalah ahli pertanian dan keuangan yang membantu petani Indonesia memahami analisis kredit mereka.
+Anda adalah ahli keuangan pertanian. Analisis SEMUA data yang diberikan untuk menghasilkan rekomendasi yang sangat tepat sasaran.
 
-Data Petani:
-- Skor Kredit: {context['credit_score']}
-- Risiko: {context['risk_level']}
+Analisis Kredit:
+- Skor Saat Ini: {context['credit_score']}
+- Tingkat Risiko: {context['risk_level']}
 - Ukuran Kebun: {context['farm_size']}
 - Lokasi: {context['location']}
 - Kesehatan Tanaman: {context['crop_health']}
+- Data Cuaca Tersedia: {context['has_weather_data']}
+- Data Satelit Tersedia: {context['has_satellite_data']}{key_factors_text}
 
-Tugas Anda:
-1. Jelaskan skor kredit dalam bahasa sederhana yang mudah dipahami petani
-2. Berikan 3-4 saran praktis untuk meningkatkan kondisi kredit
-3. Prioritaskan saran berdasarkan dampak dan kemudahan implementasi
-4. Gunakan terminologi pertanian Indonesia yang sesuai
-5. Berikan timeline realistis untuk setiap saran
+Tugas: Gunakan SEMUA titik data di atas untuk membuat rekomendasi yang ringkas dan dipersonalisasi. Dasarkan setiap rekomendasi pada wawasan data spesifik. Buat rekomendasi yang singkat dan dapat ditindaklanjuti. Hindari menyebut keterbatasan data.
 
-Format respon dalam JSON:
+Format respon (JSON, bahasa Indonesia):
 {{
-    "summary": "Penjelasan singkat tentang kondisi kredit",
-    "credit_explanation": "Penjelasan detail skor kredit",
+    "summary": "Penilaian kredit berdasarkan data saat ini",
+    "credit_explanation": "Analisis berdasarkan skor, risiko, dan karakteristik kebun",
     "recommendations": [
         {{
-            "title": "Judul saran",
-            "description": "Penjelasan detail",
+            "title": "Item tindakan berdasarkan data",
+            "description": "Langkah spesifik berdasarkan profil kebun dan faktor kredit Anda",
             "priority": "high/medium/low",
-            "timeline": "Timeline implementasi",
-            "impact": "Dampak yang diharapkan"
+            "timeline": "Jangka waktu implementasi",
+            "impact": "Peningkatan yang diharapkan"
         }}
     ],
-    "next_steps": "Langkah selanjutnya yang harus dilakukan"
+    "next_steps": "Tindakan segera berdasarkan faktor dampak tertinggi"
 }}
 
-Fokus pada advice yang praktis dan dapat diterapkan oleh petani Indonesia.
+Persyaratan:
+- Dasarkan rekomendasi pada ukuran kebun, lokasi, kesehatan tanaman, dan faktor kunci
+- Referensikan titik data spesifik dalam rekomendasi (tanpa mengatakan "data menunjukkan")
+- Berikan saran yang sesuai dengan lokasi dan ukuran kebun
+- Buat semua rekomendasi ringkas dan dapat ditindaklanjuti
+- Jangan pernah menyebut "tidak diketahui", "hilang", atau "tidak tersedia"
 """
 
 def create_english_prompt(context):
     """Create English language prompt for Gemini"""
+    key_factors_text = ""
+    if 'key_factors' in context and context['key_factors']:
+        factors_list = [f"- {factor['description']}: {factor['impact']:.3f}" for factor in context['key_factors']]
+        key_factors_text = f"\nKey Credit Factors:\n" + "\n".join(factors_list)
+    
     return f"""
-You are an agricultural finance expert helping Indonesian farmers understand their credit analysis.
+You are an agricultural finance expert. Analyze ALL provided data to generate highly targeted recommendations.
 
-IMPORTANT: Respond in ENGLISH language only.
-
-Farmer Data:
-- Credit Score: {context['credit_score']}
+Credit Analysis:
+- Current Score: {context['credit_score']}
 - Risk Level: {context['risk_level']}
 - Farm Size: {context['farm_size']}
 - Location: {context['location']}
 - Crop Health: {context['crop_health']}
+- Weather Data Available: {context['has_weather_data']}
+- Satellite Data Available: {context['has_satellite_data']}{key_factors_text}
 
-Your tasks:
-1. Explain the credit score in simple ENGLISH terms farmers can understand
-2. Provide 3-4 practical recommendations to improve credit conditions
-3. Prioritize advice by impact and ease of implementation
-4. Use appropriate Indonesian agricultural context but explain in ENGLISH
-5. Provide realistic timelines for each recommendation
+Task: Use ALL above data points to create concise, personalized recommendations. Base each recommendation on specific data insights. Keep recommendations brief and actionable. Avoid mentioning data limitations.
 
-Format response as JSON in ENGLISH:
+Response format (JSON, ENGLISH only):
 {{
-    "summary": "Brief explanation of credit condition in English",
-    "credit_explanation": "Detailed credit score explanation in English",
+    "summary": "Credit assessment based on current data",
+    "credit_explanation": "Analysis based on score, risk, and farm characteristics",
     "recommendations": [
         {{
-            "title": "Recommendation title in English",
-            "description": "Detailed explanation in English",
+            "title": "Data-driven action item",
+            "description": "Specific steps based on your farm profile and credit factors",
             "priority": "high/medium/low",
-            "timeline": "Implementation timeline in English",
-            "impact": "Expected impact in English"
+            "timeline": "Implementation timeframe",
+            "impact": "Expected improvement"
         }}
     ],
-    "next_steps": "Next steps to take in English"
+    "next_steps": "Immediate action based on highest impact factor"
 }}
 
-Focus on practical, actionable advice for Indonesian farmers, but write everything in ENGLISH language.
+Requirements:
+- Base recommendations on farm size, location, crop health, and key factors
+- Reference specific data points in recommendations (without saying "data shows")
+- Give location and farm-size appropriate advice
+- Keep all recommendations concise and actionable
+- Never mention "unknown", "missing", or "not available"
 """
 
 def parse_gemini_response(response_text, language):
@@ -1445,7 +1457,7 @@ if __name__ == '__main__':
     print(f"🔗 API endpoints: http://localhost:{PORT}/api/")
     print("=" * 50)
     print("✅ Ready for Basel III credit scoring!")
-    print("   Select a demo farm and click 'Analyze Credit Score'")
+    print("   Select a demo farm and click 'Analyze Credit Risk'")
     print("=" * 50)
     
     # Suppress Flask development server warnings

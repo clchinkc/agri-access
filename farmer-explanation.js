@@ -1,7 +1,7 @@
 class FarmerExplanationComponent {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
-        this.language = options.language || 'id'; // Default to Indonesian
+        this.language = options.language || 'en'; // Default to English
         this.creditData = null;
         this.shapData = null;
         this.weatherData = null;
@@ -40,10 +40,15 @@ class FarmerExplanationComponent {
     }
     
     async generateExplanation() {
-        if (!this.creditData) return this.getEmptyExplanation();
+        if (!this.creditData) {
+            console.warn('⚠️ No credit data available for explanation');
+            return this.getEmptyExplanation();
+        }
         
+        console.log('🔍 Credit data:', this.creditData);
         const translator = new LLMTranslationEngine();
         const farmContext = this.extractFarmContext();
+        console.log('🔍 Farm context:', farmContext);
         
         try {
             const explanation = await translator.translateCreditAnalysis(
@@ -54,9 +59,11 @@ class FarmerExplanationComponent {
                 this.weatherData,
                 this.satelliteData
             );
+            console.log('✅ Translator returned:', explanation);
             return explanation;
         } catch (error) {
-            console.error('Error generating explanation:', error);
+            console.error('❌ Error generating explanation:', error);
+            console.error('❌ Error stack:', error.stack);
             return this.getEmptyExplanation();
         }
     }
@@ -177,9 +184,11 @@ class FarmerExplanationComponent {
         try {
             // Generate explanation asynchronously
             const explanation = await this.generateExplanation();
+            console.log('✅ Generated explanation:', explanation);
             this.renderFarmerInterface(explanation);
         } catch (error) {
-            console.error('Error rendering farmer explanation:', error);
+            console.error('❌ Error rendering farmer explanation:', error);
+            console.error('❌ Error details:', error.stack);
             this.showErrorState();
         }
     }
@@ -230,7 +239,7 @@ class FarmerExplanationComponent {
         this.container.innerHTML = `
             <div class="farmer-explanation-header">
                 <div class="header-main">
-                    <h3>${content.title}</h3>
+                    <h3>💡 ${content.recommendationsTitle}</h3>
                     <div class="language-toggle">
                         <button class="lang-btn ${this.language === 'id' ? 'active' : ''}" 
                                 onclick="farmerComponent.setLanguage('id')">🇮🇩 ID</button>
@@ -238,45 +247,12 @@ class FarmerExplanationComponent {
                                 onclick="farmerComponent.setLanguage('en')">🇺🇸 EN</button>
                     </div>
                 </div>
-                <p class="header-subtitle">${content.subtitle}</p>
+                <p class="header-subtitle">${this.language === 'id' ? 'Rekomendasi berdasarkan analisis data pertanian' : 'Recommendations based on agricultural data analysis'}</p>
             </div>
             
             <div class="farmer-explanation-content">
-                <!-- Credit Score Summary -->
-                <div class="farmer-section credit-summary">
-                    <div class="section-header">
-                        <span class="section-icon">${content.creditIcon}</span>
-                        <span class="section-title">${content.creditTitle}</span>
-                    </div>
-                    <div class="credit-display">
-                        <div class="credit-score-large">${content.creditScore}</div>
-                        <div class="credit-description">${content.creditDescription}</div>
-                    </div>
-                </div>
-                
-                <!-- Crop Conditions -->
-                <div class="farmer-section conditions">
-                    <div class="section-header">
-                        <span class="section-icon">🌱</span>
-                        <span class="section-title">${content.conditionsTitle}</span>
-                    </div>
-                    <div class="conditions-grid">
-                        ${content.conditions.map(condition => `
-                            <div class="condition-item">
-                                <span class="condition-icon">${condition.icon}</span>
-                                <span class="condition-text">${condition.text}</span>
-                                <span class="condition-status">${condition.status}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                
-                <!-- Recommendations -->
+                <!-- Recommendations Only -->
                 <div class="farmer-section recommendations">
-                    <div class="section-header">
-                        <span class="section-icon">💡</span>
-                        <span class="section-title">${content.recommendationsTitle}</span>
-                    </div>
                     <div class="recommendations-list">
                         ${content.recommendations.map(rec => `
                             <div class="recommendation-item">
@@ -410,6 +386,7 @@ class FarmerExplanationComponent {
     }
     
     generateConditions(language, farmContext) {
+        console.log('🔍 generateConditions called with:', { language, farmContext });
         const conditions = [];
         
         // Crop health condition
@@ -418,17 +395,23 @@ class FarmerExplanationComponent {
                 excellent: { text: "Tanaman sangat sehat", icon: "🌱", status: "✅" },
                 good: { text: "Tanaman sehat", icon: "🌱", status: "✅" },
                 fair: { text: "Tanaman perlu perhatian", icon: "🌾", status: "⚠️" },
-                poor: { text: "Tanaman butuh perbaikan", icon: "🍂", status: "❌" }
+                poor: { text: "Tanaman butuh perbaikan", icon: "🍂", status: "❌" },
+                unknown: { text: "Kondisi tanaman belum dianalisis", icon: "🌿", status: "❓" }
             },
             en: {
                 excellent: { text: "Crops very healthy", icon: "🌱", status: "✅" },
                 good: { text: "Crops healthy", icon: "🌱", status: "✅" },
                 fair: { text: "Crops need attention", icon: "🌾", status: "⚠️" },
-                poor: { text: "Crops need improvement", icon: "🍂", status: "❌" }
+                poor: { text: "Crops need improvement", icon: "🍂", status: "❌" },
+                unknown: { text: "Crop condition not yet analyzed", icon: "🌿", status: "❓" }
             }
         };
         
-        conditions.push(cropHealthTexts[language][farmContext.cropHealth]);
+        const cropHealthCondition = (cropHealthTexts[language] && cropHealthTexts[language][farmContext.cropHealth]) || 
+                                    (cropHealthTexts[language] && cropHealthTexts[language].unknown) || 
+                                    cropHealthTexts.en.unknown;
+        console.log('🔍 Crop health condition:', cropHealthCondition);
+        conditions.push(cropHealthCondition);
         
         // Weather condition
         if (farmContext.hasWeatherData) {
@@ -436,7 +419,8 @@ class FarmerExplanationComponent {
                 id: { text: "Cuaca mendukung", icon: "☀️", status: "✅" },
                 en: { text: "Weather favorable", icon: "☀️", status: "✅" }
             };
-            conditions.push(weatherTexts[language]);
+            const weatherCondition = weatherTexts[language] || weatherTexts.en;
+            conditions.push(weatherCondition);
         }
         
         // Farm size condition
@@ -444,18 +428,44 @@ class FarmerExplanationComponent {
             id: {
                 small: { text: "Kebun skala kecil", icon: "🏡", status: "ℹ️" },
                 medium: { text: "Kebun skala menengah", icon: "🏠", status: "✅" },
-                large: { text: "Kebun skala besar", icon: "🏭", status: "✅" }
+                large: { text: "Kebun skala besar", icon: "🏭", status: "✅" },
+                unknown: { text: "Ukuran kebun belum dianalisis", icon: "📏", status: "❓" }
             },
             en: {
                 small: { text: "Small scale farm", icon: "🏡", status: "ℹ️" },
                 medium: { text: "Medium scale farm", icon: "🏠", status: "✅" },
-                large: { text: "Large scale farm", icon: "🏭", status: "✅" }
+                large: { text: "Large scale farm", icon: "🏭", status: "✅" },
+                unknown: { text: "Farm size not yet analyzed", icon: "📏", status: "❓" }
             }
         };
         
-        conditions.push(sizeTexts[language][farmContext.farmSize]);
+        const farmSizeCondition = sizeTexts[language] && sizeTexts[language][farmContext.farmSize] || 
+                                 sizeTexts[language] && sizeTexts[language].unknown || 
+                                 sizeTexts.en.unknown;
+        console.log('🔍 Farm size condition:', farmSizeCondition);
+        conditions.push(farmSizeCondition);
         
-        return conditions;
+        console.log('🔍 Final conditions array:', conditions);
+        
+        // Validate all conditions have required properties
+        const validatedConditions = conditions.map((condition, index) => {
+            if (!condition || typeof condition !== 'object') {
+                console.error(`❌ Invalid condition at index ${index}:`, condition);
+                return { text: 'Unknown condition', icon: '❓', status: '❓' };
+            }
+            if (!condition.text || !condition.icon || !condition.status) {
+                console.error(`❌ Missing properties in condition at index ${index}:`, condition);
+                return { 
+                    text: condition.text || 'Unknown', 
+                    icon: condition.icon || '❓', 
+                    status: condition.status || '❓' 
+                };
+            }
+            return condition;
+        });
+        
+        console.log('🔍 Validated conditions:', validatedConditions);
+        return validatedConditions;
     }
     
     generateRecommendations(language, farmContext, creditScore) {
@@ -796,3 +806,6 @@ class LLMTranslationEngine {
         return recommendations;
     }
 }
+
+// Expose the class to the global window object
+window.FarmerExplanationComponent = FarmerExplanationComponent;
