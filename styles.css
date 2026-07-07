@@ -30,6 +30,8 @@ body {
     cursor: pointer;
     font-size: 14px;
     transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
 }
 
 .header-btn:hover {

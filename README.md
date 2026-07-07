@@ -4,7 +4,7 @@
 
 ## High-level Explanation
 
-**Agri-Access uses satellite imagery and AI to assess agricultural credit risk in 3-5 seconds**, enabling Indonesian banks to serve 29 million farmers currently excluded from formal credit.
+**Agri-Access uses satellite imagery and AI to assess agricultural credit risk in about one minute**, enabling Indonesian banks to serve 29 million farmers currently excluded from formal credit.
 
 ### How It Works
 
@@ -15,7 +15,7 @@
 
 ### Key Innovation
 
-- **Real-time processing**: 3-5 second credit assessment vs weeks traditionally
+- **Real-time processing**: ~1 minute credit assessment vs weeks traditionally
 - **No field visits required**: Satellite coverage works anywhere in Indonesia
 - **Regulatory compliant**: Basel III + Indonesian banking standards ready
 - **Transparent AI**: SHAP explanations show decision factors
@@ -42,8 +42,25 @@ python3 basel_iii_api.py
 
 ### Demo Instructions
 1. **Select demo farmer**: Click Any Demo Data for pre-configured scenarios
-2. **Run analysis**: Click "Analyze Credit Risk" (3-5 second processing)
+2. **Run analysis**: Click "Analyze Credit Risk" (~1 minute processing)
 3. **View results**: Credit score, satellite imagery, AI explanations, risk parameters
+
+### Optional: Protect API Access
+To avoid exposing backend APIs publicly, set a token:
+
+```bash
+export AGRI_API_AUTH_TOKEN="your-strong-demo-token"
+```
+
+Then open platform with a tokenized link once (sets an auth cookie for browser API calls):
+
+```bash
+http://localhost:3000/platform?token=your-strong-demo-token
+```
+
+For direct API clients, send either:
+- `Authorization: Bearer your-strong-demo-token`, or
+- `X-API-Key: your-strong-demo-token`
 
 ### Demo Scenarios
 - **Rice farmer** (West Java) - Good credit example

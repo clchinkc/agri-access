@@ -41,14 +41,14 @@ class FarmerExplanationComponent {
     
     async generateExplanation() {
         if (!this.creditData) {
-            console.warn('⚠️ No credit data available for explanation');
+            console.warn(' No credit data available for explanation');
             return this.getEmptyExplanation();
         }
         
-        console.log('🔍 Credit data:', this.creditData);
+        console.log(' Credit data:', this.creditData);
         const translator = new LLMTranslationEngine();
         const farmContext = this.extractFarmContext();
-        console.log('🔍 Farm context:', farmContext);
+        console.log(' Farm context:', farmContext);
         
         try {
             const explanation = await translator.translateCreditAnalysis(
@@ -59,11 +59,11 @@ class FarmerExplanationComponent {
                 this.weatherData,
                 this.satelliteData
             );
-            console.log('✅ Translator returned:', explanation);
+            console.log(' Translator returned:', explanation);
             return explanation;
         } catch (error) {
-            console.error('❌ Error generating explanation:', error);
-            console.error('❌ Error stack:', error.stack);
+            console.error(' Error generating explanation:', error);
+            console.error(' Error stack:', error.stack);
             return this.getEmptyExplanation();
         }
     }
@@ -85,14 +85,13 @@ class FarmerExplanationComponent {
     extractFarmSize() {
         if (!this.shapData || !this.shapData.features) return 'unknown';
         
-        const sizeFeature = this.shapData.features.find(f => 
-            f.feature_name && f.feature_name.includes('farm_size')
+        const sizeFeature = this.shapData.features.find(f =>f.feature_name && f.feature_name.includes('farm_size')
         );
         
-        if (sizeFeature && sizeFeature.value > 0) {
+        if (sizeFeature && sizeFeature.value >0) {
             if (sizeFeature.value < 1) return 'small'; // < 1 hectare
             if (sizeFeature.value < 5) return 'medium'; // 1-5 hectares
-            return 'large'; // > 5 hectares
+            return 'large'; // >5 hectares
         }
         
         return 'medium'; // Default assumption
@@ -122,20 +121,19 @@ class FarmerExplanationComponent {
         
         // Look for vegetation index in SHAP features
         if (this.shapData && this.shapData.features) {
-            const vegetationFeatures = this.shapData.features.filter(f => 
-                f.feature_name && (
+            const vegetationFeatures = this.shapData.features.filter(f =>f.feature_name && (
                     f.feature_name.includes('vegetation') || 
                     f.feature_name.includes('ndvi') ||
                     f.feature_name.includes('prithvi')
                 )
             );
             
-            if (vegetationFeatures.length > 0) {
-                const avgVegetation = vegetationFeatures.reduce((sum, f) => sum + f.value, 0) / vegetationFeatures.length;
+            if (vegetationFeatures.length >0) {
+                const avgVegetation = vegetationFeatures.reduce((sum, f) =>sum + f.value, 0) / vegetationFeatures.length;
                 
-                if (avgVegetation > 0.7) return 'excellent';
-                if (avgVegetation > 0.5) return 'good';
-                if (avgVegetation > 0.3) return 'fair';
+                if (avgVegetation >0.7) return 'excellent';
+                if (avgVegetation >0.5) return 'good';
+                if (avgVegetation >0.3) return 'fair';
                 return 'poor';
             }
         }
@@ -146,12 +144,12 @@ class FarmerExplanationComponent {
     getEmptyExplanation() {
         const messages = {
             id: {
-                title: "🌾 Analisis Kredit Pertanian",
+                title: " Analisis Kredit Pertanian",
                 subtitle: "Analisis sedang diproses...",
                 waiting: "Menunggu data analisis kredit"
             },
             en: {
-                title: "🌾 Agricultural Credit Analysis", 
+                title: " Agricultural Credit Analysis", 
                 subtitle: "Analysis in progress...",
                 waiting: "Waiting for credit analysis data"
             }
@@ -170,7 +168,7 @@ class FarmerExplanationComponent {
                 </div>
                 <div class="farmer-explanation-content">
                     <div class="waiting-message">
-                        <span class="loading-icon">⏳</span>
+                        <span class="loading-icon"></span>
                         <span>${explanation.waiting}</span>
                     </div>
                 </div>
@@ -184,11 +182,11 @@ class FarmerExplanationComponent {
         try {
             // Generate explanation asynchronously
             const explanation = await this.generateExplanation();
-            console.log('✅ Generated explanation:', explanation);
+            console.log(' Generated explanation:', explanation);
             this.renderFarmerInterface(explanation);
         } catch (error) {
-            console.error('❌ Error rendering farmer explanation:', error);
-            console.error('❌ Error details:', error.stack);
+            console.error(' Error rendering farmer explanation:', error);
+            console.error(' Error details:', error.stack);
             this.showErrorState();
         }
     }
@@ -201,16 +199,16 @@ class FarmerExplanationComponent {
                     <h3>${content.title}</h3>
                     <div class="language-toggle">
                         <button class="lang-btn ${this.language === 'id' ? 'active' : ''}" 
-                                onclick="farmerComponent.setLanguage('id')">🇮🇩 ID</button>
+                                onclick="farmerComponent.setLanguage('id')">ID</button>
                         <button class="lang-btn ${this.language === 'en' ? 'active' : ''}" 
-                                onclick="farmerComponent.setLanguage('en')">🇺🇸 EN</button>
+                                onclick="farmerComponent.setLanguage('en')">EN</button>
                     </div>
                 </div>
                 <p class="header-subtitle">${content.subtitle}</p>
             </div>
             <div class="farmer-explanation-content">
                 <div class="waiting-message">
-                    <span class="loading-icon">⏳</span>
+                    <span class="loading-icon"></span>
                     <span>${this.language === 'id' ? 'Menganalisis data dengan AI...' : 'Analyzing data with AI...'}</span>
                 </div>
             </div>
@@ -220,14 +218,14 @@ class FarmerExplanationComponent {
     showErrorState() {
         this.container.innerHTML = `
             <div class="farmer-explanation-header">
-                <h3>${this.language === 'id' ? '🌾 Analisis Kredit Pertanian' : '🌾 Agricultural Credit Analysis'}</h3>
+                <h3>${this.language === 'id' ? ' Analisis Kredit Pertanian' : ' Agricultural Credit Analysis'}</h3>
                 <p>${this.language === 'id' ? 'Terjadi kesalahan dalam analisis' : 'Error occurred during analysis'}</p>
             </div>
             <div class="farmer-explanation-content">
                 <div class="error-message">
                     ${this.language === 'id' ? 
-                        '⚠️ Tidak dapat memuat penjelasan. Silakan coba lagi.' : 
-                        '⚠️ Unable to load explanation. Please try again.'}
+                        ' Tidak dapat memuat penjelasan. Silakan coba lagi.' : 
+                        ' Unable to load explanation. Please try again.'}
                 </div>
             </div>
         `;
@@ -239,12 +237,12 @@ class FarmerExplanationComponent {
         this.container.innerHTML = `
             <div class="farmer-explanation-header">
                 <div class="header-main">
-                    <h3>💡 ${content.recommendationsTitle}</h3>
+                    <h3> ${content.recommendationsTitle}</h3>
                     <div class="language-toggle">
                         <button class="lang-btn ${this.language === 'id' ? 'active' : ''}" 
-                                onclick="farmerComponent.setLanguage('id')">🇮🇩 ID</button>
+                                onclick="farmerComponent.setLanguage('id')">ID</button>
                         <button class="lang-btn ${this.language === 'en' ? 'active' : ''}" 
-                                onclick="farmerComponent.setLanguage('en')">🇺🇸 EN</button>
+                                onclick="farmerComponent.setLanguage('en')">EN</button>
                     </div>
                 </div>
                 <p class="header-subtitle">${this.language === 'id' ? 'Rekomendasi berdasarkan analisis data pertanian' : 'Recommendations based on agricultural data analysis'}</p>
@@ -257,7 +255,7 @@ class FarmerExplanationComponent {
                         ${content.recommendations.map(rec => `
                             <div class="recommendation-item">
                                 <div class="rec-header">
-                                    <span class="rec-icon">${rec.icon || '💡'}</span>
+                                    <span class="rec-icon">${rec.icon || ''}</span>
                                     <span class="rec-title">${rec.title}</span>
                                     <span class="rec-priority ${rec.priority}">${rec.priorityText || this.getPriorityText(rec.priority)}</span>
                                 </div>
@@ -285,7 +283,7 @@ class FarmerExplanationComponent {
         const creditScore = this.extractCreditScore();
         
         return {
-            title: "🌾 Analisis Kredit Pertanian",
+            title: " Analisis Kredit Pertanian",
             subtitle: `Berdasarkan analisis satelit ${farmContext.farmSize === 'small' ? 'kebun kecil' : 
                       farmContext.farmSize === 'medium' ? 'kebun sedang' : 'kebun besar'} Anda`,
             creditIcon: this.getCreditIcon(creditScore),
@@ -303,7 +301,7 @@ class FarmerExplanationComponent {
         const creditScore = this.extractCreditScore();
         
         return {
-            title: "🌾 Agricultural Credit Analysis",
+            title: " Agricultural Credit Analysis",
             subtitle: `Based on satellite analysis of your ${farmContext.farmSize} farm`,
             creditIcon: this.getCreditIcon(creditScore),
             creditTitle: "Your Credit Score",
@@ -343,9 +341,9 @@ class FarmerExplanationComponent {
     }
     
     getCreditIcon(score) {
-        if (score >= 750) return '🟢';
-        if (score >= 650) return '🟡';
-        return '🔴';
+        if (score >= 750) return '';
+        if (score >= 650) return '';
+        return '';
     }
     
     formatCreditScore(score) {
@@ -386,38 +384,38 @@ class FarmerExplanationComponent {
     }
     
     generateConditions(language, farmContext) {
-        console.log('🔍 generateConditions called with:', { language, farmContext });
+        console.log(' generateConditions called with:', { language, farmContext });
         const conditions = [];
         
         // Crop health condition
         const cropHealthTexts = {
             id: {
-                excellent: { text: "Tanaman sangat sehat", icon: "🌱", status: "✅" },
-                good: { text: "Tanaman sehat", icon: "🌱", status: "✅" },
-                fair: { text: "Tanaman perlu perhatian", icon: "🌾", status: "⚠️" },
-                poor: { text: "Tanaman butuh perbaikan", icon: "🍂", status: "❌" },
-                unknown: { text: "Kondisi tanaman belum dianalisis", icon: "🌿", status: "❓" }
+                excellent: { text: "Tanaman sangat sehat", icon: "", status: "" },
+                good: { text: "Tanaman sehat", icon: "", status: "" },
+                fair: { text: "Tanaman perlu perhatian", icon: "", status: "" },
+                poor: { text: "Tanaman butuh perbaikan", icon: "", status: "" },
+                unknown: { text: "Kondisi tanaman belum dianalisis", icon: "", status: "" }
             },
             en: {
-                excellent: { text: "Crops very healthy", icon: "🌱", status: "✅" },
-                good: { text: "Crops healthy", icon: "🌱", status: "✅" },
-                fair: { text: "Crops need attention", icon: "🌾", status: "⚠️" },
-                poor: { text: "Crops need improvement", icon: "🍂", status: "❌" },
-                unknown: { text: "Crop condition not yet analyzed", icon: "🌿", status: "❓" }
+                excellent: { text: "Crops very healthy", icon: "", status: "" },
+                good: { text: "Crops healthy", icon: "", status: "" },
+                fair: { text: "Crops need attention", icon: "", status: "" },
+                poor: { text: "Crops need improvement", icon: "", status: "" },
+                unknown: { text: "Crop condition not yet analyzed", icon: "", status: "" }
             }
         };
         
         const cropHealthCondition = (cropHealthTexts[language] && cropHealthTexts[language][farmContext.cropHealth]) || 
                                     (cropHealthTexts[language] && cropHealthTexts[language].unknown) || 
                                     cropHealthTexts.en.unknown;
-        console.log('🔍 Crop health condition:', cropHealthCondition);
+        console.log(' Crop health condition:', cropHealthCondition);
         conditions.push(cropHealthCondition);
         
         // Weather condition
         if (farmContext.hasWeatherData) {
             const weatherTexts = {
-                id: { text: "Cuaca mendukung", icon: "☀️", status: "✅" },
-                en: { text: "Weather favorable", icon: "☀️", status: "✅" }
+                id: { text: "Cuaca mendukung", icon: "", status: "" },
+                en: { text: "Weather favorable", icon: "", status: "" }
             };
             const weatherCondition = weatherTexts[language] || weatherTexts.en;
             conditions.push(weatherCondition);
@@ -426,45 +424,45 @@ class FarmerExplanationComponent {
         // Farm size condition
         const sizeTexts = {
             id: {
-                small: { text: "Kebun skala kecil", icon: "🏡", status: "ℹ️" },
-                medium: { text: "Kebun skala menengah", icon: "🏠", status: "✅" },
-                large: { text: "Kebun skala besar", icon: "🏭", status: "✅" },
-                unknown: { text: "Ukuran kebun belum dianalisis", icon: "📏", status: "❓" }
+                small: { text: "Kebun skala kecil", icon: "", status: "" },
+                medium: { text: "Kebun skala menengah", icon: "", status: "" },
+                large: { text: "Kebun skala besar", icon: "", status: "" },
+                unknown: { text: "Ukuran kebun belum dianalisis", icon: "", status: "" }
             },
             en: {
-                small: { text: "Small scale farm", icon: "🏡", status: "ℹ️" },
-                medium: { text: "Medium scale farm", icon: "🏠", status: "✅" },
-                large: { text: "Large scale farm", icon: "🏭", status: "✅" },
-                unknown: { text: "Farm size not yet analyzed", icon: "📏", status: "❓" }
+                small: { text: "Small scale farm", icon: "", status: "" },
+                medium: { text: "Medium scale farm", icon: "", status: "" },
+                large: { text: "Large scale farm", icon: "", status: "" },
+                unknown: { text: "Farm size not yet analyzed", icon: "", status: "" }
             }
         };
         
         const farmSizeCondition = sizeTexts[language] && sizeTexts[language][farmContext.farmSize] || 
                                  sizeTexts[language] && sizeTexts[language].unknown || 
                                  sizeTexts.en.unknown;
-        console.log('🔍 Farm size condition:', farmSizeCondition);
+        console.log(' Farm size condition:', farmSizeCondition);
         conditions.push(farmSizeCondition);
         
-        console.log('🔍 Final conditions array:', conditions);
+        console.log(' Final conditions array:', conditions);
         
         // Validate all conditions have required properties
         const validatedConditions = conditions.map((condition, index) => {
             if (!condition || typeof condition !== 'object') {
-                console.error(`❌ Invalid condition at index ${index}:`, condition);
-                return { text: 'Unknown condition', icon: '❓', status: '❓' };
+                console.error(` Invalid condition at index ${index}:`, condition);
+                return { text: 'Unknown condition', icon: '', status: '' };
             }
             if (!condition.text || !condition.icon || !condition.status) {
-                console.error(`❌ Missing properties in condition at index ${index}:`, condition);
+                console.error(` Missing properties in condition at index ${index}:`, condition);
                 return { 
                     text: condition.text || 'Unknown', 
-                    icon: condition.icon || '❓', 
-                    status: condition.status || '❓' 
+                    icon: condition.icon || '', 
+                    status: condition.status || '' 
                 };
             }
             return condition;
         });
         
-        console.log('🔍 Validated conditions:', validatedConditions);
+        console.log(' Validated conditions:', validatedConditions);
         return validatedConditions;
     }
     
@@ -476,7 +474,7 @@ class FarmerExplanationComponent {
             // High priority - credit improvement
             if (language === 'id') {
                 recommendations.push({
-                    icon: "📊",
+                    icon: "",
                     title: "Perbaiki Catatan Keuangan",
                     description: "Catat semua pemasukan dan pengeluaran pertanian dengan detail",
                     priority: "high",
@@ -485,7 +483,7 @@ class FarmerExplanationComponent {
                 });
             } else {
                 recommendations.push({
-                    icon: "📊", 
+                    icon: "", 
                     title: "Improve Financial Records",
                     description: "Keep detailed records of all farm income and expenses",
                     priority: "high",
@@ -499,7 +497,7 @@ class FarmerExplanationComponent {
             // Medium priority - crop improvement
             if (language === 'id') {
                 recommendations.push({
-                    icon: "🌱",
+                    icon: "",
                     title: "Tingkatkan Kesehatan Tanaman",
                     description: "Gunakan pupuk organik dan sistem irigasi yang lebih baik",
                     priority: "medium",
@@ -508,7 +506,7 @@ class FarmerExplanationComponent {
                 });
             } else {
                 recommendations.push({
-                    icon: "🌱",
+                    icon: "",
                     title: "Improve Crop Health", 
                     description: "Use organic fertilizers and better irrigation systems",
                     priority: "medium",
@@ -522,7 +520,7 @@ class FarmerExplanationComponent {
             // Long-term recommendation - expansion
             if (language === 'id') {
                 recommendations.push({
-                    icon: "📈",
+                    icon: "",
                     title: "Pertimbangkan Diversifikasi",
                     description: "Tanam varietas tanaman yang berbeda untuk mengurangi risiko",
                     priority: "low",
@@ -531,7 +529,7 @@ class FarmerExplanationComponent {
                 });
             } else {
                 recommendations.push({
-                    icon: "📈",
+                    icon: "",
                     title: "Consider Diversification",
                     description: "Plant different crop varieties to reduce risk",
                     priority: "low", 
@@ -544,7 +542,7 @@ class FarmerExplanationComponent {
         // Always include financial planning recommendation
         if (language === 'id') {
             recommendations.push({
-                icon: "💰",
+                icon: "",
                 title: "Rencanakan Keuangan Musiman",
                 description: "Siapkan dana untuk masa tanam dan panen berikutnya",
                 priority: "medium",
@@ -553,7 +551,7 @@ class FarmerExplanationComponent {
             });
         } else {
             recommendations.push({
-                icon: "💰",
+                icon: "",
                 title: "Plan Seasonal Finances",
                 description: "Prepare funds for next planting and harvest cycles",
                 priority: "medium",
@@ -602,7 +600,7 @@ class LLMTranslationEngine {
             this.cache.set(cacheKey, translation);
             return translation;
         } catch (error) {
-            console.warn('⚠️ Gemini API unavailable, using fallback:', error);
+            console.warn(' Gemini API unavailable, using fallback:', error);
             // Fallback to rule-based explanation
             const fallback = this.generateRuleBasedExplanation(technicalData, targetLanguage, farmContext);
             return fallback;
@@ -696,7 +694,7 @@ class LLMTranslationEngine {
         }
         
         // Fallback to a cleaned version of the original name
-        return featureName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        return featureName.replace(/_/g, ' ').replace(/\b\w/g, l =>l.toUpperCase());
     }
     
     interpretFeatureImpact(value, language) {
@@ -713,7 +711,7 @@ class LLMTranslationEngine {
             }
         };
         
-        if (value > 0.1) return impacts[language].positive;
+        if (value >0.1) return impacts[language].positive;
         if (value < -0.1) return impacts[language].negative;
         return impacts[language].neutral;
     }

@@ -12,7 +12,7 @@ Features:
 - Indonesian agricultural context
 """
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_cors import CORS
 import numpy as np
 from datetime import datetime
@@ -35,7 +35,6 @@ def convert_numpy_types(obj):
         return tuple(convert_numpy_types(item) for item in obj)
     else:
         return obj
-from prithvi_extractor import get_prithvi_extractor
 from banking_credit_model import AgricultureMLModel
 import sys
 import os
@@ -56,11 +55,17 @@ CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Con
 # Configuration
 API_VERSION = "1.0.0"
 MODEL_VERSION = "Prithvi-RF-XGBoost-v2.0"
+STRICT_REAL_ANALYSIS = os.environ.get("AGRI_STRICT_REAL_ANALYSIS", "false").strip().lower() in ("1", "true", "yes", "on")
+API_AUTH_TOKEN = os.environ.get("AGRI_API_AUTH_TOKEN", "").strip()
+API_AUTH_COOKIE_NAME = "agri_api_auth"
 
-# Configure Gemini API
-GEMINI_API_KEY = "***REMOVED-CREDENTIAL***"
-genai.configure(api_key=GEMINI_API_KEY)
-print(f"✅ Gemini API configured")
+# Configure Gemini API from environment (see .env)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    print("Gemini API configured")
+else:
+    print("Gemini API key not set; farmer explanations will use fallback text")
 
 # Global model state
 class ModelState:
@@ -76,24 +81,79 @@ class ModelState:
 
 model_state = ModelState()
 
+
+@app.before_request
+def enforce_api_auth():
+    """Protect API routes when AGRI_API_AUTH_TOKEN is set."""
+    if not API_AUTH_TOKEN:
+        return None
+
+    if not request.path.startswith("/api/"):
+        return None
+
+    if request.method == "OPTIONS":
+        return None
+
+    auth_header = request.headers.get("Authorization", "").strip()
+    bearer_token = ""
+    if auth_header.lower().startswith("bearer "):
+        bearer_token = auth_header[7:].strip()
+
+    api_key_header = request.headers.get("X-API-Key", "").strip()
+    cookie_token = request.cookies.get(API_AUTH_COOKIE_NAME, "").strip()
+
+    if bearer_token == API_AUTH_TOKEN or api_key_header == API_AUTH_TOKEN or cookie_token == API_AUTH_TOKEN:
+        return None
+
+    return jsonify({
+        "success": False,
+        "error": "Unauthorized API request"
+    }), 401
+
+
+def with_platform_auth_cookie(response):
+    """
+    Allow one-time tokenized platform links:
+    /platform?token=<AGRI_API_AUTH_TOKEN>
+    Sets HttpOnly cookie so browser API calls are authenticated.
+    """
+    if not API_AUTH_TOKEN:
+        return response
+
+    token = request.args.get("token", "").strip()
+    if token and token == API_AUTH_TOKEN:
+        response.set_cookie(
+            API_AUTH_COOKIE_NAME,
+            API_AUTH_TOKEN,
+            max_age=60 * 60 * 24,  # 24 hours
+            httponly=True,
+            samesite="Lax",
+            secure=request.is_secure
+        )
+    return response
+
+def get_prithvi_extractor_lazy():
+    """Lazy import to avoid loading PyTorch before XGBoost training."""
+    from prithvi_extractor import get_prithvi_extractor
+    return get_prithvi_extractor()
+
 def initialize_model():
     """Initialize Basel III ML pipeline components"""
-    print("🚀 Initializing Basel III ML Pipeline...", flush=True)
+    print("Initializing Basel III ML Pipeline...", flush=True)
     
     try:
         with model_state.lock:
-            print("📊 Creating model components...", flush=True)
-            
-            # Initialize Prithvi extractor (done lazily)
-            model_state.satellite_extractor = get_prithvi_extractor()
-            print("✅ Prithvi satellite extractor initialized", flush=True)
-            
-            # Initialize Random Forest + XGBoost ML model
+            print("Creating model components...", flush=True)
+
+            # Train credit model before Prithvi/PyTorch to avoid XGBoost segfaults on macOS.
             model_state.ml_model = AgricultureMLModel()
             if model_state.ml_model.is_trained:
-                print("✅ Random Forest + XGBoost ML model trained and ready", flush=True)
+                print("Random Forest + XGBoost ML model trained and ready", flush=True)
             else:
-                print("⚠️ Random Forest + XGBoost ML model initialized but not trained", flush=True)
+                print("Random Forest + XGBoost ML model initialized but not trained", flush=True)
+
+            model_state.satellite_extractor = get_prithvi_extractor_lazy()
+            print("Prithvi satellite extractor initialized", flush=True)
             
             # Initialize other components
             model_state.model = "agricultural_ml_ensemble"
@@ -102,15 +162,15 @@ def initialize_model():
             model_state.basel_calculator = "basel_iii_calculator"
             model_state.is_ready = True
             
-            print("✅ Basel III ML Pipeline initialized successfully!", flush=True)
-            print(f"   - API Version: {API_VERSION}", flush=True)
-            print(f"   - Model Version: {MODEL_VERSION}", flush=True)
-            print("   - Ready for credit scoring requests", flush=True)
+            print("Basel III ML Pipeline initialized successfully!", flush=True)
+            print(f"- API Version: {API_VERSION}", flush=True)
+            print(f"- Model Version: {MODEL_VERSION}", flush=True)
+            print("- Ready for credit scoring requests", flush=True)
             
             return True
             
     except Exception as e:
-        print(f"❌ Error initializing model: {str(e)}", flush=True)
+        print(f"Error initializing model: {str(e)}", flush=True)
         model_state.is_ready = False
         return False
 
@@ -120,7 +180,7 @@ def get_openweather_data(latitude, longitude):
     import os
     
     # Try OpenWeatherMap API if API key is available
-    api_key = os.environ.get('OPENWEATHER_API_KEY', '***REMOVED-CREDENTIAL***')
+    api_key = os.environ.get('OPENWEATHER_API_KEY', '').strip()
     
     if api_key:
         try:
@@ -150,11 +210,13 @@ def get_openweather_data(latitude, longitude):
                 raise Exception(f"API returned status {response.status_code}")
                 
         except Exception as e:
-            print(f"⚠️ OpenWeatherMap API failed: {e}, using Indonesian climate model")
+            if STRICT_REAL_ANALYSIS:
+                raise RuntimeError(f"OpenWeatherMap API failed in strict mode: {e}")
+            print(f"OpenWeatherMap API failed: {e}, using Indonesian climate model")
             return get_indonesian_climate_data(latitude, longitude)
     else:
         # No API key available, use Indonesian climate model directly
-        print("📍 Using Indonesian climate model (no OpenWeatherMap API key)")
+        print("Using Indonesian climate model (no OpenWeatherMap API key)")
         return get_indonesian_climate_data(latitude, longitude)
 
 def get_indonesian_climate_data(latitude, longitude):
@@ -183,7 +245,7 @@ def generate_satellite_features(farm_data):
     """Generate satellite features using Prithvi-EO-2.0-300M foundation model"""
     
     # Get the Prithvi extractor
-    extractor = get_prithvi_extractor()
+    extractor = get_prithvi_extractor_lazy()
     
     # Generate diverse NASA GIBS URLs for the farm location (matching frontend diversity)
     lat, lon = farm_data['latitude'], farm_data['longitude']
@@ -200,19 +262,19 @@ def generate_satellite_features(farm_data):
     
     try:
         # Extract features using Prithvi model
-        print(f"🛰️ Extracting Prithvi features for farm at ({lat}, {lon})")
+        print(f"Extracting Prithvi features for farm at ({lat}, {lon})")
         prithvi_results = extractor.extract_agricultural_features(satellite_urls, farm_data)
         
         # Use Prithvi features if extraction successful
-        if prithvi_results['prithvi_features'] is not None and len(prithvi_results['prithvi_features']) > 0:
-            print(f"✅ Extracted {prithvi_results['feature_count']} Prithvi features")
+        if prithvi_results['prithvi_features'] is not None and len(prithvi_results['prithvi_features']) >0:
+            print(f"Extracted {prithvi_results['feature_count']} Prithvi features")
             
             # Normalize features to 0-1 range for compatibility
             features = prithvi_results['prithvi_features']
             features = (features - features.min()) / (features.max() - features.min() + 1e-8)
             
             # Pad or truncate to expected 256 features for ML model compatibility
-            if len(features) > 256:
+            if len(features) >256:
                 features = features[:256]
             elif len(features) < 256:
                 # Pad with agricultural indices if needed
@@ -224,8 +286,10 @@ def generate_satellite_features(farm_data):
             return features
             
     except Exception as e:
-        print(f"⚠️ Prithvi feature extraction failed: {e}")
-        print("🔄 Falling back to enhanced synthetic features...")
+        if STRICT_REAL_ANALYSIS:
+            raise RuntimeError(f"Prithvi feature extraction failed in strict mode: {e}")
+        print(f"Prithvi feature extraction failed: {e}")
+        print("Falling back to enhanced synthetic features...")
     
     # Fallback to enhanced synthetic features if Prithvi fails
     return generate_fallback_satellite_features(farm_data)
@@ -236,7 +300,7 @@ def generate_fallback_satellite_features(farm_data):
     np.random.seed(hash(str(farm_data['latitude']) + str(farm_data['longitude'])) % 2147483647)
     
     # Create features that correlate with farm quality
-    base_quality = 0.6 if farm_data['crop_type'] == 'rice' else 0.5
+    base_quality = 0.6 if farm_data['crop_type'] == 'rice'else 0.5
     base_quality += min(0.2, farm_data['farm_size'] * 0.05)  # Larger farms tend to be better managed
     
     # Generate 256 satellite features with agricultural patterns
@@ -253,7 +317,7 @@ def generate_satellite_image_url(image_type, lat, lon):
     y = int((1 - np.log(np.tan(lat * np.pi / 180) + 1 / np.cos(lat * np.pi / 180)) / np.pi) / 2 * (2 ** zoom))
     
     # Use more recent date with better satellite coverage for Indonesian agricultural areas
-    base_date = "2024-09-01"  # Recent date with good satellite coverage
+    base_date = "2024-09-01"# Recent date with good satellite coverage
     
     if image_type == 'landsat-true-color':
         # MODIS Terra True Color - Real NASA satellite data
@@ -316,9 +380,16 @@ def generate_weather_features(weather_data, location_data, crop_type):
     regional_factors = get_regional_climate_factors(location_data['latitude'], location_data['longitude'])
     features.extend(regional_factors)
     
-    # Pad to 64 features with additional derived metrics
+    # Pad to 64 features with deterministic derived metrics (no random filler)
     while len(features) < 64:
-        features.append(np.random.normal(0.5, 0.1))
+        idx = len(features)
+        baseline = (
+            (weather_data['temperature'] / 40.0) * 0.35 +
+            (weather_data['humidity'] / 100.0) * 0.35 +
+            min(weather_data['rainfall'] / 300.0, 1.0) * 0.20 +
+            min(weather_data['wind_speed'] / 30.0, 1.0) * 0.10
+        )
+        features.append(float(np.clip(baseline + ((idx % 7) - 3) * 0.01, 0.0, 1.0)))
     
     return np.array(features[:64])
 
@@ -404,20 +475,25 @@ def format_currency_idr(amount):
 @app.route('/api/test', methods=['GET'])
 def test_endpoint():
     """Simple test endpoint"""
-    print("🧪 Test endpoint called")
+    print("Test endpoint called")
     return jsonify({"status": "working", "message": "API is responding"})
 
 def generate_gee_satellite_url(collection, lat, lon, bands='B4,B3,B2', min_val=0, max_val=3000):
     """Generate satellite image URL for specific location using reliable satellite services"""
     
     # Use OpenStreetMap-based satellite imagery that shows correct locations
-    if 'landsat' in collection.lower():
-        # Use MapBox satellite imagery with correct coordinates
+    if 'landsat'in collection.lower():
+        # Use MapBox satellite imagery if token is configured; otherwise fallback to ArcGIS.
         zoom = 15
-        return f"https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/{lon},{lat},{zoom}/400x400?access_token=***REMOVED-CREDENTIAL***"
+        mapbox_token = os.environ.get("MAPBOX_ACCESS_TOKEN", "").strip()
+        if mapbox_token:
+            return f"https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/{lon},{lat},{zoom}/400x400?access_token={mapbox_token}"
+        x = int((lon + 180) / 360 * (2 ** zoom))
+        y = int((1 - np.log(np.tan(lat * np.pi / 180) + 1 / np.cos(lat * np.pi / 180)) / np.pi) / 2 * (2 ** zoom))
+        return f"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{zoom}/{y}/{x}"
     
     # For Sentinel-2, use Planet Labs satellite imagery
-    elif 'sentinel' in collection.lower():
+    elif 'sentinel'in collection.lower():
         # Use ArcGIS World Imagery which shows correct locations
         zoom = 15
         x = int((lon + 180) / 360 * (2 ** zoom))
@@ -455,8 +531,8 @@ def generate_nasa_cmr_satellite_images(lat, lon):
             gfsad_data = gfsad_response.json()
             for entry in gfsad_data.get('feed', {}).get('entry', [])[:1]:  # Only take 1 to avoid duplicates
                 for link in entry.get('links', []):
-                    if (link.get('rel') == 'http://esipfed.org/ns/fedsearch/1.1/browse#' and 
-                        ('jpg' in link.get('href', '').lower() or 'png' in link.get('href', '').lower())):
+                    if (link.get('rel') == 'http://esipfed.org/ns/fedsearch/1.1/browse#'and 
+                        ('jpg'in link.get('href', '').lower() or 'png'in link.get('href', '').lower())):
                         images.append({
                             'type': 'GFSAD30SEACE',
                             'description': 'NASA Cropland Classification (30m resolution)',
@@ -482,8 +558,8 @@ def generate_nasa_cmr_satellite_images(lat, lon):
             modis_data = modis_response.json()
             for entry in modis_data.get('feed', {}).get('entry', [])[:2]:
                 for link in entry.get('links', []):
-                    if (link.get('rel') == 'http://esipfed.org/ns/fedsearch/1.1/browse#' and 
-                        ('jpg' in link.get('href', '').lower() or 'png' in link.get('href', '').lower())):
+                    if (link.get('rel') == 'http://esipfed.org/ns/fedsearch/1.1/browse#'and 
+                        ('jpg'in link.get('href', '').lower() or 'png'in link.get('href', '').lower())):
                         images.append({
                             'type': 'MODIS',
                             'description': 'NASA Vegetation Index (250m resolution)',
@@ -567,14 +643,14 @@ def analyze_farm():
     - collateralType: string
     """
     
-    print(f"🔥 API /analyze endpoint called - Model ready: {model_state.is_ready}")
+    print(f"API /analyze endpoint called - Model ready: {model_state.is_ready}")
     
     # Handle CORS preflight
     if request.method == 'OPTIONS':
         return '', 200
     
     if not model_state.is_ready:
-        print("❌ Model not ready, returning 503")
+        print("Model not ready, returning 503")
         return jsonify({
             'success': False,
             'error': 'Model not ready. Please wait for initialization to complete.',
@@ -583,7 +659,7 @@ def analyze_farm():
     
     try:
         data = request.get_json()
-        print(f"📥 Received request data: {data}")
+        print(f"Received request data: {data}")
         
         # Extract farm data
         farm_data = {
@@ -607,18 +683,19 @@ def analyze_farm():
             'longitude': farm_data['longitude']
         }
         
-        # Feature extraction (mock implementation)
-        # In production, these would use actual trained models
+        # Feature extraction
         satellite_features = generate_satellite_features(farm_data)
         weather_features = generate_weather_features(weather_data, location_data, farm_data['crop_type'])
+        satellite_source = 'Prithvi'if not STRICT_REAL_ANALYSIS else 'Prithvi (strict mode)'
+        weather_source = weather_data.get('source', 'Unknown')
         
         # Create traditional features
         traditional_features = np.array([
             farm_data['farm_size'],
             farm_data['loan_amount'] / 1_000_000,  # Convert to millions
             farm_data['loan_term'],
-            1.0 if farm_data['crop_type'] == 'rice' else 0.0,
-            1.0 if farm_data['collateral_type'] == 'land' else 0.0,
+            1.0 if farm_data['crop_type'] == 'rice'else 0.0,
+            1.0 if farm_data['collateral_type'] == 'land'else 0.0,
             farm_data['latitude'],
             farm_data['longitude'],
             35.0,  # Mock farmer age
@@ -628,7 +705,7 @@ def analyze_farm():
         # Calculate Basel III components using Random Forest + XGBoost ML model
         if model_state.ml_model and model_state.ml_model.is_trained:
             # Use trained ML model with satellite and weather features
-            print("🤖 Using Random Forest + XGBoost ML model for predictions")
+            print("Using Random Forest + XGBoost ML model for predictions")
             ml_result = model_state.ml_model.calculate_credit_score(
                 farm_data, 
                 satellite_features=satellite_features,
@@ -649,17 +726,31 @@ def analyze_farm():
                 
                 # Get SHAP explanations
                 shap_explanations = analysis.get('shapValues', {})
-                print(f"✅ ML model prediction: Credit Score {credit_score}, SLIK {slik_score}")
+                print(f"ML model prediction: Credit Score {credit_score}, SLIK {slik_score}")
             else:
+                if STRICT_REAL_ANALYSIS:
+                    return jsonify({
+                        'success': False,
+                        'error': 'ML model prediction failed and strict real-analysis mode forbids fallback scoring.',
+                        'model_version': MODEL_VERSION
+                    }), 503
                 # Fallback to simple calculation
-                print("⚠️ ML model failed, using fallback calculation")
+                print("ML model failed, using fallback calculation")
                 credit_score, pd, lgd, ead, ecl, slik_score = _calculate_fallback_scores(farm_data, weather_data)
                 shap_explanations = {}
+                satellite_source = f"{satellite_source} (fallback scoring)"
         else:
+            if STRICT_REAL_ANALYSIS:
+                return jsonify({
+                    'success': False,
+                    'error': 'ML model is not trained and strict real-analysis mode forbids fallback scoring.',
+                    'model_version': MODEL_VERSION
+                }), 503
             # Fallback calculation when model not available
-            print("⚠️ ML model not trained, using fallback calculation")
+            print("ML model not trained, using fallback calculation")
             credit_score, pd, lgd, ead, ecl, slik_score = _calculate_fallback_scores(farm_data, weather_data)
             shap_explanations = {}
+            satellite_source = f"{satellite_source} (fallback scoring)"
         
         # Apply Basel III constraints
         pd = max(0.0003, min(0.999, pd))  # Basel III floors/ceilings
@@ -679,14 +770,20 @@ def analyze_farm():
         }
         
         # Use real SHAP explanations from ML model when available, otherwise generate mock ones
-        if 'shap_explanations' not in locals() or not shap_explanations:
-            print("⚠️ Using mock SHAP explanations (ML model SHAP not available)")
+        if 'shap_explanations'not in locals() or not shap_explanations:
+            if STRICT_REAL_ANALYSIS:
+                return jsonify({
+                    'success': False,
+                    'error': 'SHAP explanations unavailable and strict real-analysis mode forbids mock SHAP.',
+                    'model_version': MODEL_VERSION
+                }), 503
+            print("Using mock SHAP explanations (ML model SHAP not available)")
             shap_explanations = generate_mock_shap_explanations(
                 farm_data, weather_data, traditional_features, 
                 slik_score, pd, lgd, ead
             )
         else:
-            print("✅ Using real SHAP values from Random Forest + XGBoost model")
+            print("Using real SHAP values from Random Forest + XGBoost model")
         
         # Generate real satellite images for the farm location
         browse_images = generate_real_satellite_images(farm_data['latitude'], farm_data['longitude'])
@@ -716,27 +813,30 @@ def analyze_farm():
             'weather_analysis': {
                 'current_conditions': weather_data,
                 'weather_features_count': int(len(weather_features)),
-                'weather_suitability': 'Good' if weather_data['temperature'] < 30 else 'Moderate'
+                'weather_suitability': 'Good'if weather_data['temperature'] < 30 else 'Moderate',
+                'source': weather_source
             },
             'satellite_analysis': {
                 'feature_count': int(len(satellite_features)),
                 'processing_method': 'IBM/NASA Prithvi-EO-2.0-300M Foundation Model',
                 'sources_processed': 'Landsat 8, Sentinel-2, GFSAD, MODIS NDVI, VIIRS, MODIS Thermal',
-                'resolution': '256 agricultural features (6 diverse satellite sources)'
+                'resolution': '256 agricultural features (6 diverse satellite sources)',
+                'feature_source': satellite_source
             },
             'shap_explanations': shap_explanations,
             'model_performance': {
                 'features_used': 320,  # 256 satellite + 64 weather + traditional
-                'confidence': 'High' if model_state.ml_model and model_state.ml_model.is_trained else 'Medium',
-                'model_type': 'Random Forest + XGBoost Ensemble (Prithvi-EO-2.0-300M + Basel III)',
+                'confidence': 'High'if model_state.ml_model and model_state.ml_model.is_trained else 'Medium',
+                'model_type': 'Random Forest + XGBoost Ensemble (Prithvi-EO-2.0-300M + Basel III)'if (model_state.ml_model and model_state.ml_model.xgboost is not None) else 'Random Forest (Prithvi-EO-2.0-300M + Basel III)',
                 'satellite_model': 'IBM/NASA Prithvi-EO-2.0-300M',
-                'weather_source': 'OpenWeatherMap API' if 'OpenWeatherMap' in weather_data.get('source', '') else 'Indonesian Climate Model',
-                'ensemble_weights': 'RF: 70%, XGBoost: 30%'
+                'weather_source': 'OpenWeatherMap API'if 'OpenWeatherMap'in weather_data.get('source', '') else 'Indonesian Climate Model',
+                'ensemble_weights': 'RF: 70%, XGBoost: 30%'if (model_state.ml_model and model_state.ml_model.xgboost is not None) else 'RF: 100%',
+                'strict_real_analysis': STRICT_REAL_ANALYSIS
             },
             'timestamp': datetime.now().isoformat()
         }
         
-        print(f"✅ Successfully processed request, returning response")
+        print(f"Successfully processed request, returning response")
         # Convert all numpy types to Python native types before JSON serialization
         response = convert_numpy_types(response)
         return jsonify(response)
@@ -748,7 +848,7 @@ def analyze_farm():
             'traceback': traceback.format_exc(),
             'timestamp': datetime.now().isoformat()
         }
-        print(f"❌ Error in analysis: {str(e)}")
+        print(f"Error in analysis: {str(e)}")
         traceback.print_exc()
         return jsonify(error_details), 500
 
@@ -765,7 +865,7 @@ def model_status():
             'satellite_extractor': model_state.satellite_extractor is not None,
             'shap_explainer': model_state.shap_explainer is not None
         },
-        'status': 'ready' if model_state.is_ready else 'initializing',
+        'status': 'ready'if model_state.is_ready else 'initializing',
         'timestamp': datetime.now().isoformat()
     })
 
@@ -837,9 +937,22 @@ def proxy_image():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/')
-def serve_index():
-    """Serve the main application"""
-    return send_from_directory('.', 'index.html')
+def serve_home():
+    """Serve the company landing page."""
+    response = make_response(send_from_directory('.', 'home.html'))
+    return with_platform_auth_cookie(response)
+
+@app.route('/platform')
+def serve_platform():
+    """Serve the credit scoring platform."""
+    response = make_response(send_from_directory('.', 'index.html'))
+    return with_platform_auth_cookie(response)
+
+@app.route('/app')
+def serve_platform_alias():
+    """Alias for the credit scoring platform."""
+    response = make_response(send_from_directory('.', 'index.html'))
+    return with_platform_auth_cookie(response)
 
 @app.route('/api/farmer/explain', methods=['POST', 'OPTIONS'])
 def farmer_explanation():
@@ -848,9 +961,9 @@ def farmer_explanation():
         return jsonify({}), 200
     
     try:
-        print(f"🌾 Farmer explanation endpoint called")
+        print(f"Farmer explanation endpoint called")
         data = request.get_json()
-        print(f"📥 Request data received: {data}")
+        print(f"Request data received: {data}")
         
         # Extract data from request
         credit_data = data.get('creditData', {})
@@ -860,28 +973,28 @@ def farmer_explanation():
         language = data.get('language', 'id')
         farm_context = data.get('farmContext', {})
         
-        print(f"🔑 GEMINI_API_KEY available: {GEMINI_API_KEY is not None}")
-        print(f"🔑 GEMINI_API_KEY length: {len(GEMINI_API_KEY) if GEMINI_API_KEY else 0}")
+        print(f"GEMINI_API_KEY available: {GEMINI_API_KEY is not None}")
+        print(f"GEMINI_API_KEY length: {len(GEMINI_API_KEY) if GEMINI_API_KEY else 0}")
         
         # Check if Gemini API is available
         if not GEMINI_API_KEY:
-            print(f"❌ No Gemini API key found, using fallback")
+            print(f"No Gemini API key found, using fallback")
             return jsonify({
                 'success': False,
                 'error': 'AI explanation service not available',
                 'fallback': generate_fallback_explanation(credit_data, language, farm_context)
             }), 503
         
-        print(f"✅ Gemini API key found, calling generate_gemini_explanation")
-        print(f"🔄 About to call generate_gemini_explanation with credit_score: {credit_data.get('credit_score')}")
+        print(f"Gemini API key found, calling generate_gemini_explanation")
+        print(f"About to call generate_gemini_explanation with credit_score: {credit_data.get('credit_score')}")
         
         # Generate explanation using Gemini
         explanation = generate_gemini_explanation(
             credit_data, shap_data, weather_data, satellite_data, language, farm_context
         )
         
-        print(f"🔄 generate_gemini_explanation returned: {type(explanation)}")
-        print(f"🔄 explanation keys: {list(explanation.keys()) if isinstance(explanation, dict) else 'not a dict'}")
+        print(f"generate_gemini_explanation returned: {type(explanation)}")
+        print(f"explanation keys: {list(explanation.keys()) if isinstance(explanation, dict) else 'not a dict'}")
         
         return jsonify({
             'success': True,
@@ -891,7 +1004,7 @@ def farmer_explanation():
         })
         
     except Exception as e:
-        print(f"❌ Error in farmer explanation: {str(e)}")
+        print(f"Error in farmer explanation: {str(e)}")
         traceback.print_exc()
         
         # Return fallback explanation
@@ -910,64 +1023,64 @@ def farmer_explanation():
 def generate_gemini_explanation(credit_data, shap_data, weather_data, satellite_data, language, farm_context):
     """Generate farmer explanation using Gemini AI"""
     import sys
-    print(f"🔍 GEMINI FUNCTION CALLED - Starting Gemini explanation generation...", flush=True)
+    print(f"GEMINI FUNCTION CALLED - Starting Gemini explanation generation...", flush=True)
     sys.stdout.flush()
-    print(f"   Language: {language}", flush=True)
-    print(f"   Credit score: {credit_data.get('credit_score', 'N/A')}", flush=True)
-    print(f"   Farm context: {farm_context}", flush=True)
+    print(f"Language: {language}", flush=True)
+    print(f"Credit score: {credit_data.get('credit_score', 'N/A')}", flush=True)
+    print(f"Farm context: {farm_context}", flush=True)
     
     try:
         import sys
-        print(f"🤖 Initializing Gemini model...", flush=True)
+        print(f"Initializing Gemini model...", flush=True)
         sys.stdout.flush()
         # Initialize Gemini model - using latest flash model for speed and cost efficiency
         model = genai.GenerativeModel('models/gemini-2.5-flash')
-        print(f"✅ Gemini model initialized (gemini-2.5-flash)", flush=True)
+        print(f"Gemini model initialized (gemini-2.5-flash)", flush=True)
         sys.stdout.flush()
         
         # Prepare context for Gemini
-        print(f"📊 Preparing context for Gemini...", flush=True)
+        print(f"Preparing context for Gemini...", flush=True)
         sys.stdout.flush()
         context = prepare_gemini_context(credit_data, shap_data, weather_data, satellite_data, farm_context)
-        print(f"✅ Context prepared: {context}", flush=True)
+        print(f"Context prepared: {context}", flush=True)
         sys.stdout.flush()
         
         # Create prompt based on language
-        print(f"📝 Creating prompt for language: {language}", flush=True)
+        print(f"Creating prompt for language: {language}", flush=True)
         sys.stdout.flush()
         if language == 'id':
             prompt = create_indonesian_prompt(context)
         else:
             prompt = create_english_prompt(context)
         
-        print(f"📝 Prompt created (length: {len(prompt)} chars)", flush=True)
-        print(f"🚀 Calling Gemini API...", flush=True)
+        print(f"Prompt created (length: {len(prompt)} chars)", flush=True)
+        print(f"Calling Gemini API...", flush=True)
         sys.stdout.flush()
         
         # Generate response from Gemini
         response = model.generate_content(prompt)
-        print(f"✅ Gemini API responded successfully", flush=True)
-        print(f"📤 Response text: {response.text[:200]}...", flush=True)
+        print(f"Gemini API responded successfully", flush=True)
+        print(f"Response text: {response.text[:200]}...", flush=True)
         sys.stdout.flush()
         
         # Parse the response
         explanation = parse_gemini_response(response.text, language)
-        print(f"✅ Response parsed successfully", flush=True)
+        print(f"Response parsed successfully", flush=True)
         sys.stdout.flush()
         
         return explanation
         
     except Exception as e:
         import sys
-        print(f"❌ GEMINI API ERROR OCCURRED: {str(e)}", flush=True)
-        print(f"❌ Error type: {type(e).__name__}", flush=True)
+        print(f"GEMINI API ERROR OCCURRED: {str(e)}", flush=True)
+        print(f"Error type: {type(e).__name__}", flush=True)
         sys.stdout.flush()
         import traceback
-        print(f"❌ Full traceback:", flush=True)
+        print(f"Full traceback:", flush=True)
         traceback.print_exc()
         sys.stdout.flush()
         # Return fallback explanation
-        print(f"🔄 Using fallback explanation", flush=True)
+        print(f"Using fallback explanation", flush=True)
         sys.stdout.flush()
         return generate_fallback_explanation(credit_data, language, farm_context)
 
@@ -985,7 +1098,7 @@ def prepare_gemini_context(credit_data, shap_data, weather_data, satellite_data,
     }
     
     # Add SHAP feature importance if available
-    if shap_data and 'features' in shap_data:
+    if shap_data and 'features'in shap_data:
         top_features = sorted(shap_data['features'], key=lambda x: abs(x.get('value', 0)), reverse=True)[:5]
         context['key_factors'] = [
             {
@@ -1001,9 +1114,9 @@ def prepare_gemini_context(credit_data, shap_data, weather_data, satellite_data,
 def create_indonesian_prompt(context):
     """Create Indonesian language prompt for Gemini"""
     key_factors_text = ""
-    if 'key_factors' in context and context['key_factors']:
-        factors_list = [f"- {factor['description']}: {factor['impact']:.3f}" for factor in context['key_factors']]
-        key_factors_text = f"\nFaktor Kredit Utama:\n" + "\n".join(factors_list)
+    if 'key_factors'in context and context['key_factors']:
+        factors_list = [f"- {factor['description']}: {factor['impact']:.3f}"for factor in context['key_factors']]
+        key_factors_text = f"\nFaktor Kredit Utama:\n"+ "\n".join(factors_list)
     
     return f"""
 Anda adalah ahli keuangan pertanian. Analisis SEMUA data yang diberikan untuk menghasilkan rekomendasi yang sangat tepat sasaran.
@@ -1046,9 +1159,9 @@ Persyaratan:
 def create_english_prompt(context):
     """Create English language prompt for Gemini"""
     key_factors_text = ""
-    if 'key_factors' in context and context['key_factors']:
-        factors_list = [f"- {factor['description']}: {factor['impact']:.3f}" for factor in context['key_factors']]
-        key_factors_text = f"\nKey Credit Factors:\n" + "\n".join(factors_list)
+    if 'key_factors'in context and context['key_factors']:
+        factors_list = [f"- {factor['description']}: {factor['impact']:.3f}"for factor in context['key_factors']]
+        key_factors_text = f"\nKey Credit Factors:\n"+ "\n".join(factors_list)
     
     return f"""
 You are an agricultural finance expert. Analyze ALL provided data to generate highly targeted recommendations.
@@ -1091,8 +1204,8 @@ Requirements:
 def parse_gemini_response(response_text, language):
     """Parse Gemini response and structure it for the frontend"""
     try:
-        print(f"🔍 Parsing Gemini response (length: {len(response_text)})")
-        print(f"📝 First 200 chars: {response_text[:200]}")
+        print(f"Parsing Gemini response (length: {len(response_text)})")
+        print(f"First 200 chars: {response_text[:200]}")
         
         # Try to extract JSON from the response - handle markdown code blocks
         import re
@@ -1101,25 +1214,25 @@ def parse_gemini_response(response_text, language):
         markdown_json_match = re.search(r'```json\s*(\{.*?\})\s*```', response_text, re.DOTALL)
         if markdown_json_match:
             json_str = markdown_json_match.group(1)
-            print(f"✅ Found JSON in markdown block")
+            print(f"Found JSON in markdown block")
         else:
             # Fallback to general JSON extraction
             json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
             if json_match:
                 json_str = json_match.group()
-                print(f"✅ Found JSON in response")
+                print(f"Found JSON in response")
             else:
-                print(f"❌ No JSON found in response")
+                print(f"No JSON found in response")
                 return create_structured_response(response_text, language)
         
-        print(f"📋 Extracted JSON (first 200 chars): {json_str[:200]}")
+        print(f"Extracted JSON (first 200 chars): {json_str[:200]}")
         parsed = json.loads(json_str)
-        print(f"✅ Successfully parsed JSON response")
+        print(f"Successfully parsed JSON response")
         return parsed
         
     except Exception as e:
-        print(f"❌ Error parsing Gemini response: {str(e)}")
-        print(f"❌ Raw response: {response_text[:500]}")
+        print(f"Error parsing Gemini response: {str(e)}")
+        print(f"Raw response: {response_text[:500]}")
         return create_structured_response(response_text, language)
 
 def create_structured_response(text, language):
@@ -1127,7 +1240,7 @@ def create_structured_response(text, language):
     if language == 'id':
         return {
             "summary": "Analisis kredit berdasarkan data satelit dan cuaca menunjukkan kondisi yang perlu perhatian.",
-            "credit_explanation": text[:200] + "..." if len(text) > 200 else text,
+            "credit_explanation": text[:200] + "..."if len(text) >200 else text,
             "recommendations": [
                 {
                     "title": "Perbaiki Catatan Keuangan",
@@ -1142,7 +1255,7 @@ def create_structured_response(text, language):
     else:
         return {
             "summary": "Credit analysis based on satellite and weather data shows areas needing attention.",
-            "credit_explanation": text[:200] + "..." if len(text) > 200 else text,
+            "credit_explanation": text[:200] + "..."if len(text) >200 else text,
             "recommendations": [
                 {
                     "title": "Improve Financial Records",
@@ -1217,11 +1330,19 @@ def translate_feature_name(feature_name):
         if key in feature_name.lower():
             return translation
     
-    return feature_name.replace('_', ' ').title()
+    return feature_name.replace('_', '').title()
 
 @app.route('/<path:filename>')
 def serve_static(filename):
-    """Serve static files"""
+    """Serve static files (blocks sensitive paths)."""
+    blocked_prefixes = ('.',)
+    blocked_names = {
+        '.env', '.git', 'banking_credit_model.py', 'basel_iii_api.py',
+        'xgb_train_worker.py', 'prithvi_extractor.py', 'requirements.txt',
+    }
+    base_name = os.path.basename(filename)
+    if base_name in blocked_names or base_name.startswith(blocked_prefixes):
+        return jsonify({'error': 'Not found'}), 404
     return send_from_directory('.', filename)
 
 # Mock Basel III Calculation Functions
@@ -1243,13 +1364,13 @@ def calculate_mock_credit_score(farm_data, weather_data, traditional_features):
         base_score += 30
     
     # Weather suitability
-    if 24 <= weather_data['temperature'] <= 30 and weather_data['humidity'] > 65:
+    if 24 <= weather_data['temperature'] <= 30 and weather_data['humidity'] >65:
         base_score += 40
     
     # Loan amount risk (lower for smaller loans)
     if farm_data['loan_amount'] < 25_000_000:
         base_score += 30
-    elif farm_data['loan_amount'] > 100_000_000:
+    elif farm_data['loan_amount'] >100_000_000:
         base_score -= 20
     
     # Regional adjustments based on latitude (Java vs other islands)
@@ -1269,13 +1390,13 @@ def calculate_mock_pd(credit_score, farm_data):
     base_pd = 0.15 * (1 - score_normalized) ** 1.5
     
     # Adjustments
-    if farm_data['farm_size'] > 3:
+    if farm_data['farm_size'] >3:
         base_pd *= 0.8  # Larger farms are more stable
     
     if farm_data['collateral_type'] == 'land':
         base_pd *= 0.7  # Land collateral reduces default risk
     
-    if farm_data['loan_amount'] > 100_000_000:
+    if farm_data['loan_amount'] >100_000_000:
         base_pd *= 1.2  # Higher loan amounts increase risk
     
     return max(0.0003, min(0.999, base_pd))
@@ -1373,12 +1494,12 @@ def generate_mock_shap_explanations(farm_data, weather_data, traditional_feature
     # Credit Score SHAP values (scaled for SLIK 1-5 range)
     credit_features = [
         {'feature': 'farm_size', 'shap_value': farm_data['farm_size'] * 0.15, 'feature_value': farm_data['farm_size'], 'impact': 'positive'},
-        {'feature': 'collateral_land', 'shap_value': 0.8 if farm_data['collateral_type'] == 'land' else -0.3, 'feature_value': 1.0 if farm_data['collateral_type'] == 'land' else 0.0, 'impact': 'positive' if farm_data['collateral_type'] == 'land' else 'negative'},
+        {'feature': 'collateral_land', 'shap_value': 0.8 if farm_data['collateral_type'] == 'land'else -0.3, 'feature_value': 1.0 if farm_data['collateral_type'] == 'land'else 0.0, 'impact': 'positive'if farm_data['collateral_type'] == 'land'else 'negative'},
         {'feature': 'weather_temperature', 'shap_value': (30 - abs(weather_data['temperature'] - 27)) * 0.04, 'feature_value': weather_data['temperature'], 'impact': 'positive'},
         {'feature': 'weather_humidity', 'shap_value': (weather_data['humidity'] - 50) * 0.01, 'feature_value': weather_data['humidity'], 'impact': 'positive'},
         {'feature': 'loan_amount_M', 'shap_value': -farm_data['loan_amount'] / 50_000_000, 'feature_value': farm_data['loan_amount'] / 1_000_000, 'impact': 'negative'},
-        {'feature': 'crop_rice', 'shap_value': 0.5 if farm_data['crop_type'] == 'rice' else 0.0, 'feature_value': 1.0 if farm_data['crop_type'] == 'rice' else 0.0, 'impact': 'positive'},
-        {'feature': 'latitude', 'shap_value': 0.3 if -8 <= farm_data['latitude'] <= -6 else -0.1, 'feature_value': farm_data['latitude'], 'impact': 'positive' if -8 <= farm_data['latitude'] <= -6 else 'negative'},
+        {'feature': 'crop_rice', 'shap_value': 0.5 if farm_data['crop_type'] == 'rice'else 0.0, 'feature_value': 1.0 if farm_data['crop_type'] == 'rice'else 0.0, 'impact': 'positive'},
+        {'feature': 'latitude', 'shap_value': 0.3 if -8 <= farm_data['latitude'] <= -6 else -0.1, 'feature_value': farm_data['latitude'], 'impact': 'positive'if -8 <= farm_data['latitude'] <= -6 else 'negative'},
         {'feature': 'prithvi_vegetation', 'shap_value': 0.4 + (farm_data['latitude'] + farm_data['longitude']) * 0.01, 'feature_value': 0.75, 'impact': 'positive'},
         {'feature': 'prithvi_crop_health', 'shap_value': 0.3 + farm_data['farm_size'] * 0.05, 'feature_value': 0.62, 'impact': 'positive'},
         {'feature': 'weather_rainfall', 'shap_value': (weather_data['rainfall'] - 100) * 0.003, 'feature_value': weather_data['rainfall'], 'impact': 'positive'}
@@ -1396,14 +1517,14 @@ def generate_mock_shap_explanations(farm_data, weather_data, traditional_feature
             'feature': feature['feature'],
             'shap_value': pd_shap,
             'feature_value': feature['feature_value'],
-            'impact': 'negative' if pd_shap > 0 else 'positive'
+            'impact': 'negative'if pd_shap >0 else 'positive'
         })
     shap_explanations['PD'] = pd_features
     
     # LGD SHAP values
     lgd_features = [
-        {'feature': 'collateral_land', 'shap_value': -0.15 if farm_data['collateral_type'] == 'land' else 0.08, 'feature_value': 1.0 if farm_data['collateral_type'] == 'land' else 0.0, 'impact': 'negative' if farm_data['collateral_type'] == 'land' else 'positive'},
-        {'feature': 'latitude', 'shap_value': -0.03 if -8 <= farm_data['latitude'] <= -6 else 0.02, 'feature_value': farm_data['latitude'], 'impact': 'negative' if -8 <= farm_data['latitude'] <= -6 else 'positive'},
+        {'feature': 'collateral_land', 'shap_value': -0.15 if farm_data['collateral_type'] == 'land'else 0.08, 'feature_value': 1.0 if farm_data['collateral_type'] == 'land'else 0.0, 'impact': 'negative'if farm_data['collateral_type'] == 'land'else 'positive'},
+        {'feature': 'latitude', 'shap_value': -0.03 if -8 <= farm_data['latitude'] <= -6 else 0.02, 'feature_value': farm_data['latitude'], 'impact': 'negative'if -8 <= farm_data['latitude'] <= -6 else 'positive'},
         {'feature': 'loan_amount_M', 'shap_value': farm_data['loan_amount'] / 100_000_000 * 0.05, 'feature_value': farm_data['loan_amount'] / 1_000_000, 'impact': 'positive'},
         {'feature': 'farm_size', 'shap_value': -farm_data['farm_size'] * 0.008, 'feature_value': farm_data['farm_size'], 'impact': 'negative'},
     ]
@@ -1440,25 +1561,26 @@ def find_available_port(start_port=3000):
     return None
 
 if __name__ == '__main__':
-    print("🌾 Basel III Agricultural Credit Scoring API")
-    print("=" * 50)
+    print("Basel III Agricultural Credit Scoring API")
+    print("="* 50)
     
     # Start background initialization
     start_background_initialization()
     
-    # Find an available port
-    PORT = find_available_port(3000)
+    # Find an available port (use PORT in production, e.g. Render/Heroku)
+    PORT = int(os.environ.get('PORT', 0)) or find_available_port(3000)
     if PORT is None:
-        print("❌ No available ports found. Please free up some ports.")
+        print("No available ports found. Please free up some ports.")
         sys.exit(1)
     
-    print(f"🚀 Starting server on http://localhost:{PORT}")
-    print(f"📱 Web interface: http://localhost:{PORT}")
-    print(f"🔗 API endpoints: http://localhost:{PORT}/api/")
-    print("=" * 50)
-    print("✅ Ready for Basel III credit scoring!")
-    print("   Select a demo farm and click 'Analyze Credit Risk'")
-    print("=" * 50)
+    print(f"Starting server on http://localhost:{PORT}")
+    print(f"Landing page: http://localhost:{PORT}/")
+    print(f"Credit platform: http://localhost:{PORT}/platform")
+    print(f"API endpoints: http://localhost:{PORT}/api/")
+    print("="* 50)
+    print("Ready for Basel III credit scoring!")
+    print("Select a demo farm and click 'Analyze Credit Risk'")
+    print("="* 50)
     
     # Suppress Flask development server warnings
     import os

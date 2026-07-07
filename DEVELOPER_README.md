@@ -38,7 +38,7 @@ Click any of the pre-configured farm location buttons:
 ### 3. Analyze Credit
 Click "🚀 Analyze Credit Risk" button to start the analysis
 
-### 4. Review Results (3-5 seconds processing)
+### 4. Review Results (~1 minute processing)
 The platform displays:
 - **Credit Score Arc**: Visual credit score with risk rating
 - **Basel III Parameters**: PD, LGD, EAD, ECL calculations
@@ -211,7 +211,7 @@ python basel_iii_api.py
 ```
 
 ### Performance Notes
-- **Response Time**: 3-5 seconds for complete analysis
+- **Response Time**: ~1 minute for complete analysis
 - **Memory Usage**: ~150MB baseline, 300MB under load
 - **CPU Usage**: Moderate (Random Forest inference)
 - **Network**: Requires internet for satellite tile services
@@ -236,7 +236,7 @@ python basel_iii_api.py
 - 29 million Indonesian farmers addressable market
 - 70% interest rate reduction potential (26% → 6-9%)
 - Geographic inclusion via satellite (no field visits)
-- 3-5 second processing vs weeks for traditional assessment
+- ~1 minute processing vs weeks for traditional assessment
 
 ### Banking Ready
 - Basel III PD, LGD, EAD, ECL calculations

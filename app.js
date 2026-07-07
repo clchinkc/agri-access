@@ -33,36 +33,36 @@ const API_CONFIG = {
 // ===== MAP INITIALIZATION AND MANAGEMENT =====
 
 function initializeMap() {
-    console.log('🗺️ Initializing map...');
+    console.log(' Initializing map...');
     
     // Check if map is already initialized
     if (map) {
-        console.log('🔄 Map already initialized, skipping...');
+        console.log(' Map already initialized, skipping...');
         return;
     }
     
     const mapContainer = document.getElementById('map');
-    console.log('📍 Map container:', mapContainer);
-    console.log('📏 Container dimensions:', mapContainer?.offsetWidth, 'x', mapContainer?.offsetHeight);
+    console.log(' Map container:', mapContainer);
+    console.log(' Container dimensions:', mapContainer?.offsetWidth, 'x', mapContainer?.offsetHeight);
     
     if (!mapContainer) {
-        console.error('❌ Map container not found!');
+        console.error(' Map container not found!');
         return;
     }
     
     try {
         // Check if Leaflet is loaded
         if (typeof L === 'undefined') {
-            console.error('❌ Leaflet library not loaded!');
-            mapContainer.innerHTML = '<div style="padding: 20px; text-align: center; background: #f8f8f8; border: 2px dashed #ccc;">❌ Map loading failed - Leaflet library not found</div>';
+            console.error(' Leaflet library not loaded!');
+            mapContainer.innerHTML = '<div style="padding: 20px; text-align: center; background: #f8f8f8; border: 2px dashed #ccc;">Map loading failed - Leaflet library not found</div>';
             return;
         }
         
         map = L.map('map').setView([-6.7749, 107.1389], 10);
-        console.log('✅ Map object created:', map);
+        console.log(' Map object created:', map);
     } catch (error) {
-        console.error('❌ Error creating map:', error);
-        mapContainer.innerHTML = '<div style="padding: 20px; text-align: center; background: #f8f8f8; border: 2px dashed #ccc;">❌ Map initialization failed: ' + error.message + '</div>';
+        console.error(' Error creating map:', error);
+        mapContainer.innerHTML = '<div style="padding: 20px; text-align: center; background: #f8f8f8; border: 2px dashed #ccc;">Map initialization failed: ' + error.message + '</div>';
         return;
     }
     
@@ -81,34 +81,34 @@ function initializeMap() {
         });
         
         streetMap.addTo(map);
-        console.log('✅ Street map tiles added');
+        console.log(' Street map tiles added');
         
         const baseMaps = {
-            "🗺️ Street Map": streetMap,
-            "🛰️ Satellite": satelliteMap
+            " Street Map": streetMap,
+            " Satellite": satelliteMap
         };
         
         L.control.layers(baseMaps).addTo(map);
         L.control.scale().addTo(map);
         
-        console.log('✅ Map controls added');
+        console.log(' Map controls added');
     } catch (error) {
-        console.error('❌ Error adding map tiles/controls:', error);
+        console.error(' Error adding map tiles/controls:', error);
     }
     
     updateFarmMarker();
     
-    console.log('✅ Map initialization complete');
+    console.log(' Map initialization complete');
     
     // Force map resize after a short delay with throttling
     setTimeout(() => {
-        console.log('🔄 Invalidating map size...');
+        console.log(' Invalidating map size...');
         if (map) {
             try {
                 // Use requestAnimationFrame to avoid ResizeObserver loops
                 requestAnimationFrame(() => {
                     map.invalidateSize();
-                    console.log('✅ Map size invalidated');
+                    console.log(' Map size invalidated');
                 });
             } catch (error) {
                 console.warn('Map resize warning (harmless):', error.message);
@@ -141,6 +141,41 @@ function loadDemoLocation(farmer) {
             lon: 110.1779,
             size: 0.8,
             crop: 'coffee'
+        },
+        agus: {
+            name: 'Pak Agus Pratama',
+            lat: -3.0027,  // Musi Banyuasin, South Sumatra - mixed estate farming
+            lon: 104.7500,
+            size: 4.6,
+            crop: 'cocoa'
+        },
+        dewi: {
+            name: 'Ibu Dewi Kartika',
+            lat: -5.1180,  // Lampung - coffee + food crop ecosystem
+            lon: 105.3060,
+            size: 2.1,
+            crop: 'coffee'
+        },
+        hasan: {
+            name: 'Pak Hasan Basri',
+            lat: -4.0050,  // South Sulawesi - cocoa region
+            lon: 119.6500,
+            size: 3.0,
+            crop: 'cocoa'
+        },
+        made: {
+            name: 'Pak Made Suardana',
+            lat: -8.6500,  // Lombok, NTB - dryland rice and rubber
+            lon: 117.3600,
+            size: 1.9,
+            crop: 'rice'
+        },
+        yusuf: {
+            name: 'Pak Yusuf Mahendra',
+            lat: 0.2000,   // East Kalimantan - large palm/rubber estates
+            lon: 117.2000,
+            size: 9.5,
+            crop: 'palm oil'
         }
     };
 
@@ -187,7 +222,7 @@ let coverageRectangles = [];
 
 function addDataCoverageBounds(result) {
     // Clear existing rectangles
-    coverageRectangles.forEach(rect => map.removeLayer(rect));
+    coverageRectangles.forEach(rect =>map.removeLayer(rect));
     coverageRectangles = [];
 
     // Add GFSAD bounding box if available (add first, lower layer)
@@ -202,7 +237,7 @@ function addDataCoverageBounds(result) {
                 weight: 2
             }).bindPopup(`
                 <div style="font-family: Arial, sans-serif;">
-                    <strong>🗺️ GFSAD30SEACE Coverage</strong><br>
+                    <strong>GFSAD30SEACE Coverage</strong><br>
                     <small>Cropland Classification (30m resolution)</small><br>
                     <strong>Data Size:</strong> ${result.gfsadData.dataSize}MB<br>
                     <strong>Updated:</strong> ${new Date(result.gfsadData.updated).toLocaleDateString()}
@@ -224,7 +259,7 @@ function addDataCoverageBounds(result) {
                 weight: 2
             }).bindPopup(`
                 <div style="font-family: Arial, sans-serif;">
-                    <strong>🌱 MODIS Coverage</strong><br>
+                    <strong>MODIS Coverage</strong><br>
                     <small>Vegetation Index (250m resolution)</small><br>
                     <strong>Data Size:</strong> ${result.modisData.dataSize}MB<br>
                     <strong>Period:</strong> ${new Date(result.modisData.timeStart).toLocaleDateString()} - ${new Date(result.modisData.timeEnd).toLocaleDateString()}
@@ -235,7 +270,7 @@ function addDataCoverageBounds(result) {
     }
 
     // Add Google Earth Engine image bounding boxes last (top layer)
-    if (result.browseImages && result.browseImages.length > 0) {
+    if (result.browseImages && result.browseImages.length >0) {
         result.browseImages.forEach((image, index) => {
             if (image.bbox && image.priority === 1) { // Only GEE images (priority 1)
                 const bbox = image.bbox;
@@ -253,7 +288,7 @@ function addDataCoverageBounds(result) {
                     interactive: true
                 }).bindPopup(`
                     <div style="font-family: Arial, sans-serif;">
-                        <strong>🌍 ${image.type}</strong><br>
+                        <strong> ${image.type}</strong><br>
                         <small>${image.description}</small><br>
                         <strong>Resolution:</strong> ${image.resolution}<br>
                         <strong>Source:</strong> ${image.source}
@@ -281,7 +316,7 @@ function addSatelliteMarkersToMap() {
     
     // Remove existing satellite markers if any
     if (window.satelliteMarkers) {
-        window.satelliteMarkers.forEach(marker => map.removeLayer(marker));
+        window.satelliteMarkers.forEach(marker =>map.removeLayer(marker));
     }
     window.satelliteMarkers = [];
     
@@ -292,21 +327,21 @@ function addSatelliteMarkersToMap() {
             offset: [0.005, 0.005],
             color: '#4CAF50',
             type: 'RGB Composite',
-            icon: '🛰️'
+            icon: ''
         },
         {
             name: 'Sentinel-2 NDVI', 
             offset: [-0.005, 0.005],
             color: '#2196F3',
             type: 'NDVI Analysis',
-            icon: '🌱'
+            icon: ''
         },
         {
             name: 'Weather Station',
             offset: [0, -0.008],
             color: '#FF9800', 
             type: 'Weather Data',
-            icon: '🌦️'
+            icon: ''
         }
     ];
     
@@ -325,7 +360,7 @@ function addSatelliteMarkersToMap() {
             <div style="font-family: Arial, sans-serif;">
                 <strong>${sat.icon} ${sat.name}</strong><br>
                 <small>${sat.type}</small><br>
-                <span style="color: ${sat.color};">✅ Data Available</span>
+                <span style="color: ${sat.color};">Data Available</span>
             </div>
         `).addTo(map);
         
@@ -336,16 +371,16 @@ function addSatelliteMarkersToMap() {
 // ===== MAIN ANALYSIS FUNCTIONS =====
 
 async function analyzeWithRealNASAData() {
-    console.log('🚀 analyzeWithRealNASAData function called');
+    console.log(' analyzeWithRealNASAData function called');
     
     // First test basic API connectivity
     try {
-        console.log('🧪 Testing basic API connectivity...');
+        console.log(' Testing basic API connectivity...');
         const testResponse = await fetch('/api/test');
         const testResult = await testResponse.json();
-        console.log('✅ API test successful:', testResult);
+        console.log(' API test successful:', testResult);
     } catch (testError) {
-        console.error('❌ API test failed:', testError);
+        console.error(' API test failed:', testError);
         alert('API connection test failed: ' + testError.message);
         return;
     }
@@ -355,7 +390,7 @@ async function analyzeWithRealNASAData() {
     const loadingTitle = document.getElementById('loadingTitle');
     const loadingStatus = document.getElementById('loadingStatus');
     
-    console.log('📋 Found elements:', { button, loading, loadingTitle, loadingStatus });
+    console.log(' Found elements:', { button, loading, loadingTitle, loadingStatus });
     
     button.disabled = true;
     
@@ -390,11 +425,11 @@ async function analyzeWithRealNASAData() {
         loadingStatus.textContent = 'Processing satellite and weather data...';
         
         // Call Basel III API for credit scoring analysis
-        console.log('🚀 Calling Basel III API at:', API_CONFIG.endpoints.analyze);
-        console.log('📤 Sending farm data:', farmData);
+        console.log(' Calling Basel III API at:', API_CONFIG.endpoints.analyze);
+        console.log(' Sending farm data:', farmData);
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+        const timeoutId = setTimeout(() =>controller.abort(), API_CONFIG.timeout);
         
         const response = await fetch(API_CONFIG.endpoints.analyze, {
             method: 'POST',
@@ -407,16 +442,16 @@ async function analyzeWithRealNASAData() {
         
         clearTimeout(timeoutId);
         
-        console.log('📥 API Response status:', response.status);
+        console.log(' API Response status:', response.status);
         
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ API Error:', response.status, errorText);
+            console.error(' API Error:', response.status, errorText);
             throw new Error(`Server error: ${response.status} - ${errorText}`);
         }
         
         const result = await response.json();
-        console.log('✅ API Response received:', result);
+        console.log(' API Response received:', result);
         
         // Add success flag for compatibility with existing display logic
         result.success = result.success !== false;
@@ -426,19 +461,19 @@ async function analyzeWithRealNASAData() {
         updateWorkflowStatus(3, 'active');
         loadingStatus.textContent = 'Calculating Basel III risk parameters...';
         
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve =>setTimeout(resolve, 500));
         
         updateWorkflowStatus(3, 'completed');
         updateWorkflowStatus(4, 'active');
         loadingStatus.textContent = 'Computing PD, LGD, EAD and credit score...';
         
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve =>setTimeout(resolve, 500));
         
         updateWorkflowStatus(4, 'completed');
         updateWorkflowStatus(5, 'active');
         loadingStatus.textContent = 'Generating SHAP explanations...';
         
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve =>setTimeout(resolve, 500));
         
         updateWorkflowStatus(5, 'completed');
         
@@ -485,7 +520,7 @@ async function analyzeWithRealNASAData() {
 // ===== RESULT DISPLAY FUNCTIONS =====
 
 function displayAnalysisResults(result) {
-    console.log('🔍 Displaying results:', result);
+    console.log(' Displaying results:', result);
     
     // Handle Basel III API response structure
     if (result.success && result.basel_iii_results) {
@@ -507,13 +542,13 @@ function displayAnalysisResults(result) {
         }, 100);
         
         // Update data sources status panel with Basel III results
-        document.getElementById('geeResult').textContent = '✅ Connected (Basel III)';
-        document.getElementById('nasaDataResult').textContent = '✅ Integrated (Cropland + Vegetation)';
+        document.getElementById('geeResult').textContent = ' Connected (Basel III)';
+        document.getElementById('nasaDataResult').textContent = ' Integrated (Cropland + Vegetation)';
         
         // Weather API status
         const hasWeatherData = result.weather_analysis && result.weather_analysis.current_conditions;
         document.getElementById('weatherApiResult').textContent = hasWeatherData ? 
-            '✅ Basel III Weather API' : '❌ No weather data';
+            ' Basel III Weather API' : ' No weather data';
         
         // Display Basel III results
         displayBaselIIIResults(result.basel_iii_results, result.formatted_results);
@@ -550,10 +585,10 @@ function displayAnalysisResults(result) {
         setTimeout(() => {
             if (creditScoreArc && result.basel_iii_results) {
                 const slikScore = convertToSLIKScale(result.basel_iii_results.credit_score);
-                console.log('🎯 Setting credit score arc to SLIK:', slikScore, 'from credit score:', result.basel_iii_results.credit_score);
+                console.log(' Setting credit score arc to SLIK:', slikScore, 'from credit score:', result.basel_iii_results.credit_score);
                 creditScoreArc.setScore(slikScore, true);
             } else {
-                console.log('❌ Credit score arc not available, showing fallback');
+                console.log(' Credit score arc not available, showing fallback');
                 // Show fallback visualization
                 const arcContainer = document.getElementById('creditScoreArc');
                 if (arcContainer && result.basel_iii_results) {
@@ -580,12 +615,12 @@ function displayAnalysisResults(result) {
                         result.weather_analysis, 
                         result.satellite_data
                     );
-                    console.log('✅ Farmer explanation component initialized');
+                    console.log(' Farmer explanation component initialized');
                 } catch (error) {
-                    console.error('❌ Error initializing farmer component:', error);
+                    console.error(' Error initializing farmer component:', error);
                 }
             } else {
-                console.warn('⚠️ FarmerExplanationComponent not available');
+                console.warn(' FarmerExplanationComponent not available');
             }
         }, 300);
         
@@ -599,9 +634,9 @@ function displayAnalysisResults(result) {
         
         // Update data sources status panel
         document.getElementById('geeResult').textContent = result.analysisResults.geeDataAvailable ? 
-            '✅ Connected' : '❌ No data';
+            ' Connected' : ' No data';
         document.getElementById('nasaDataResult').textContent = result.gfsadData.available ? 
-            '✅ Connected (Cropland + Vegetation)' : '❌ No NASA data';
+            ' Connected (Cropland + Vegetation)' : ' No NASA data';
         
         // Weather API status - show specific APIs
         const hasWeatherData = result.weatherData && result.weatherData.success;
@@ -611,9 +646,9 @@ function displayAnalysisResults(result) {
             if (result.weatherData.openMeteoData?.available) sources.push('Open-Meteo');
             if (result.weatherData.openWeatherData?.available) sources.push('OpenWeatherMap');
             if (result.weatherData.bmkgData?.available) sources.push('BMKG Indonesia');
-            weatherStatus = sources.length > 0 ? `✅ ${sources.join(' + ')}` : '❌ No APIs';
+            weatherStatus = sources.length >0 ? ` ${sources.join(' + ')}` : ' No APIs';
         } else {
-            weatherStatus = '❌ No APIs';
+            weatherStatus = ' No APIs';
         }
         document.getElementById('weatherApiResult').textContent = weatherStatus;
         
@@ -646,7 +681,7 @@ function displayAnalysisResults(result) {
             }
             
             // Credit score display is now handled by the arc component only
-            console.log('✅ Credit score display handled by arc component:', slikScore);
+            console.log(' Credit score display handled by arc component:', slikScore);
             
             // Display Basel III metrics
             displayBaselIIIResults(baselResults, formattedResults);
@@ -672,9 +707,9 @@ function displayAnalysisResults(result) {
                         result.weatherData, 
                         result.analysisResults
                     );
-                    console.log('✅ Farmer explanation component initialized (legacy path)');
+                    console.log(' Farmer explanation component initialized (legacy path)');
                 } catch (error) {
-                    console.error('❌ Error initializing farmer component (legacy):', error);
+                    console.error(' Error initializing farmer component (legacy):', error);
                 }
             }
         }, 300);
@@ -695,7 +730,7 @@ function displayAnalysisResults(result) {
         // Clear farmer explanation component on error
         const farmerContainer = document.getElementById('farmerExplanationContainer');
         if (farmerContainer) {
-            farmerContainer.innerHTML = '<div class="error-message">⚠️ Analysis failed - please try again</div>';
+            farmerContainer.innerHTML = '<div class="error-message">Analysis failed - please try again</div>';
         }
     }
 }
@@ -704,14 +739,13 @@ function displaySatelliteImagesGrid(browseImages) {
     const grid = document.getElementById('satelliteImagesGrid');
     
     if (!grid) {
-        console.error('🚨 Satellite images grid container not found');
+        console.error(' Satellite images grid container not found');
         return;
     }
     
     if (!browseImages || browseImages.length === 0) {
         grid.innerHTML = `
-            <div style="text-align: center; color: #999; font-size: 12px; grid-column: 1 / -1; padding: 20px;">
-                No satellite imagery available for this location.
+            <div style="text-align: center; color: #999; font-size: 12px; grid-column: 1 / -1; padding: 20px;">No satellite imagery available for this location.
             </div>
         `;
         return;
@@ -734,11 +768,11 @@ function displaySatelliteImagesGrid(browseImages) {
                      style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px 6px 0 0;" 
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
                      alt="${image.type}">
-                <div style="display: none; height: 120px; background: linear-gradient(135deg, ${color}22, ${color}11); line-height: 120px; font-size: 24px;">🛰️</div>
+                <div style="display: none; height: 120px; background: linear-gradient(135deg, ${color}22, ${color}11); line-height: 120px; font-size: 24px;"></div>
                 <div style="padding: 10px;">
                     <div style="font-weight: bold; font-size: 12px; color: #333; margin-bottom: 4px;">${image.type}</div>
                     <div style="font-size: 10px; color: #666;">${image.resolution} resolution</div>
-                    <div style="font-size: 10px; color: ${color}; margin-top: 4px;">✅ ${image.source}</div>
+                    <div style="font-size: 10px; color: ${color}; margin-top: 4px;"> ${image.source}</div>
                 </div>
             </div>
         `;
@@ -886,7 +920,7 @@ function showImageModal(title, type, resolution, source, imageUrl) {
     const modalStatus = document.getElementById('modalStatus');
     const modalImage = document.getElementById('modalImage');
     
-    modalTitle.textContent = `🛰️ ${title}`;
+    modalTitle.textContent = ` ${title}`;
     modalDataset.textContent = type;
     modalResolution.textContent = resolution;
     modalSource.textContent = source;
@@ -897,11 +931,11 @@ function showImageModal(title, type, resolution, source, imageUrl) {
         modalImage.src = imageUrl;
         modalImage.onerror = function() {
             // Fallback if real image fails to load
-            this.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23e8f5e8"/><rect x="20" y="20" width="360" height="260" fill="%234CAF50" opacity="0.1"/><text x="200" y="130" text-anchor="middle" font-size="16" fill="%232c5234">🛰️ ' + title + '</text><text x="200" y="160" text-anchor="middle" font-size="14" fill="%23666">' + type + ' - ' + resolution + '</text><text x="200" y="190" text-anchor="middle" font-size="12" fill="%23999">Image temporarily unavailable</text></svg>';
+            this.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23e8f5e8"/><rect x="20" y="20" width="360" height="260" fill="%234CAF50" opacity="0.1"/><text x="200" y="130" text-anchor="middle" font-size="16" fill="%232c5234"> ' + title + '</text><text x="200" y="160" text-anchor="middle" font-size="14" fill="%23666">' + type + ' - ' + resolution + '</text><text x="200" y="190" text-anchor="middle" font-size="12" fill="%23999">Image temporarily unavailable</text></svg>';
         };
     } else {
         // Default fallback
-        modalImage.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23e8f5e8"/><rect x="20" y="20" width="360" height="260" fill="%234CAF50" opacity="0.1"/><text x="200" y="130" text-anchor="middle" font-size="16" fill="%232c5234">🛰️ ' + title + '</text><text x="200" y="160" text-anchor="middle" font-size="14" fill="%23666">' + type + ' - ' + resolution + '</text></svg>';
+        modalImage.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23e8f5e8"/><rect x="20" y="20" width="360" height="260" fill="%234CAF50" opacity="0.1"/><text x="200" y="130" text-anchor="middle" font-size="16" fill="%232c5234"> ' + title + '</text><text x="200" y="160" text-anchor="middle" font-size="14" fill="%23666">' + type + ' - ' + resolution + '</text></svg>';
     }
     
     modal.style.display = 'block';
@@ -971,18 +1005,18 @@ function updateLiveWeatherPanel(weatherAnalysis) {
         
         // Determine weather conditions based on temperature and humidity
         let weatherCondition = 'Clear';
-        if (conditions.humidity > 80) weatherCondition = 'Humid';
-        else if (conditions.temperature > 32) weatherCondition = 'Hot';
+        if (conditions.humidity >80) weatherCondition = 'Humid';
+        else if (conditions.temperature >32) weatherCondition = 'Hot';
         else if (conditions.temperature < 22) weatherCondition = 'Cool';
         
         document.getElementById('liveConditions').textContent = weatherCondition;
         
         // Risk assessment based on agricultural suitability
-        let riskLevel = '🟢 Low Risk';
-        if (conditions.temperature > 35 || conditions.humidity > 90) {
-            riskLevel = '🔴 High Risk';
-        } else if (conditions.temperature > 32 || conditions.humidity > 85) {
-            riskLevel = '🟡 Monitor';
+        let riskLevel = ' Low Risk';
+        if (conditions.temperature >35 || conditions.humidity >90) {
+            riskLevel = ' High Risk';
+        } else if (conditions.temperature >32 || conditions.humidity >85) {
+            riskLevel = ' Monitor';
         }
         
         document.getElementById('liveRisk').textContent = riskLevel;
@@ -991,14 +1025,14 @@ function updateLiveWeatherPanel(weatherAnalysis) {
         document.getElementById('liveTemp').textContent = 'Processing...';
         document.getElementById('liveHumidity').textContent = 'Processing...';
         document.getElementById('liveConditions').textContent = 'Analyzing...';
-        document.getElementById('liveRisk').textContent = '🟡 Analyzing';
+        document.getElementById('liveRisk').textContent = ' Analyzing';
     }
 }
 
 
 // Basel III Results Display Function
 function displayBaselIIIResults(baselResults, formattedResults) {
-    console.log('🏦 Displaying Basel III results:', baselResults, formattedResults);
+    console.log(' Displaying Basel III results:', baselResults, formattedResults);
     
     // Update main Basel III metrics display
     const eclElement = document.getElementById('expectedCreditLossMain');
@@ -1009,7 +1043,7 @@ function displayBaselIIIResults(baselResults, formattedResults) {
     if (pdElement) pdElement.textContent = formattedResults.pd_percentage || 'N/A';
     if (lgdElement) lgdElement.textContent = formattedResults.lgd_percentage || 'N/A';
     
-    console.log('📊 Updated main metrics:', {
+    console.log(' Updated main metrics:', {
         ecl: formattedResults.ecl_formatted,
         pd: formattedResults.pd_percentage, 
         lgd: formattedResults.lgd_percentage
@@ -1242,14 +1276,13 @@ function clearResults() {
     }
     
     // Clear map data and reset grid
-    coverageRectangles.forEach(rect => map.removeLayer(rect));
+    coverageRectangles.forEach(rect =>map.removeLayer(rect));
     coverageRectangles = [];
     currentSatelliteImages = [];
     document.getElementById('satelliteImagesGrid').innerHTML = `
         <div style="text-align: center; color: #999; font-size: 12px; grid-column: 1 / -1; padding: 20px; background: linear-gradient(135deg, #e8f5e8, #e3f2fd); border-radius: 8px; border: 2px dashed #4CAF50;">
-            <div style="font-size: 16px; margin-bottom: 8px;">🛰️🌦️🤖</div>
-            <strong>Analytics Ready</strong><br>
-            Click "Analyze Credit Risk" to view satellite imagery and weather data analysis
+            <div style="font-size: 16px; margin-bottom: 8px;"></div>
+            <strong>Analytics Ready</strong><br>Click "Analyze Credit Risk" to view satellite imagery and weather data analysis
         </div>
     `;
 }
@@ -1262,18 +1295,18 @@ function showError(message) {
 window.addEventListener('error', function(event) {
     if (event.message && event.message.includes('ResizeObserver loop')) {
         event.preventDefault();
-        console.log('🔇 Suppressed harmless ResizeObserver warning');
+        console.log(' Suppressed harmless ResizeObserver warning');
         return true;
     }
 });
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DOM Content Loaded - initializing app...');
+    console.log(' DOM Content Loaded - initializing app...');
     
     // Add a small delay to ensure all CSS is loaded
     setTimeout(function() {
-        console.log('🎯 Starting map initialization...');
+        console.log(' Starting map initialization...');
         initializeMap();
         loadDemoLocation('siti');
         initializeVisualizationComponents();
@@ -1290,7 +1323,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Fallback for older browsers
 window.onload = function() {
     if (!window.appInitialized) {
-        console.log('🔄 Fallback initialization...');
+        console.log(' Fallback initialization...');
         initializeMap();
         loadDemoLocation('siti');
         initializeVisualizationComponents();
@@ -1299,13 +1332,13 @@ window.onload = function() {
 };
 
 function initializeVisualizationComponents() {
-    console.log('🎯 Initializing visualization components...');
+    console.log(' Initializing visualization components...');
     
     // Initialize Credit Score Arc (only if not already initialized)
     if (typeof CreditScoreArc !== 'undefined' && !creditScoreArc) {
         const arcContainer = document.getElementById('creditScoreArc');
         if (arcContainer) {
-            console.log('✅ Found credit score arc container');
+            console.log(' Found credit score arc container');
             try {
                 // Clear container first to prevent conflicts
                 arcContainer.innerHTML = '';
@@ -1314,24 +1347,24 @@ function initializeVisualizationComponents() {
                     responsive: true
                 });
                 creditScoreArc.setScore(3, false); // Set initial neutral SLIK score
-                console.log('✅ Credit score arc initialized');
+                console.log(' Credit score arc initialized');
             } catch (error) {
-                console.error('❌ Error initializing credit score arc:', error);
+                console.error(' Error initializing credit score arc:', error);
             }
         } else {
-            console.error('❌ Credit score arc container not found');
+            console.error(' Credit score arc container not found');
         }
     } else if (creditScoreArc) {
-        console.log('🔄 Credit score arc already initialized, skipping...');
+        console.log(' Credit score arc already initialized, skipping...');
     } else {
-        console.error('❌ CreditScoreArc class not loaded');
+        console.error(' CreditScoreArc class not loaded');
     }
     
     // Initialize SHAP Visualization (only if not already initialized)
     if (typeof SHAPVisualization !== 'undefined' && !shapVisualization) {
         const shapContainer = document.getElementById('shapVisualization');
         if (shapContainer) {
-            console.log('✅ Found SHAP visualization container');
+            console.log(' Found SHAP visualization container');
             try {
                 // Clear container first to prevent conflicts
                 shapContainer.innerHTML = '';
@@ -1341,17 +1374,17 @@ function initializeVisualizationComponents() {
                 });
                 // Set initial message
                 shapVisualization.chartContainer.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Ready to analyze - Click "Analyze Credit Score" to view feature importance</p>';
-                console.log('✅ SHAP visualization initialized');
+                console.log(' SHAP visualization initialized');
             } catch (error) {
-                console.error('❌ Error initializing SHAP visualization:', error);
+                console.error(' Error initializing SHAP visualization:', error);
             }
         } else {
-            console.error('❌ SHAP visualization container not found');
+            console.error(' SHAP visualization container not found');
         }
     } else if (shapVisualization) {
-        console.log('🔄 SHAP visualization already initialized, skipping...');
+        console.log(' SHAP visualization already initialized, skipping...');
     } else {
-        console.error('❌ SHAPVisualization class not loaded');
+        console.error(' SHAPVisualization class not loaded');
     }
 }
 
@@ -1364,7 +1397,7 @@ function updateWorkflowStatus(step, status) {
             statusElement.classList.add('active');
         } else if (status === 'completed') {
             statusElement.classList.add('completed');
-            statusElement.textContent = '✓';
+            statusElement.textContent = '';
         }
     }
 }

@@ -30,6 +30,7 @@ rasterio>=1.3.0
 flask>=2.3.0
 flask-cors>=4.0.0
 python-dotenv>=1.0.0
+gunicorn>=21.2.0
 
 # ===== AI INTEGRATION =====
 # Google Gemini AI for farmer explanations

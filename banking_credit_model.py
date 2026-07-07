@@ -7,12 +7,27 @@ Advanced ML pipeline for agricultural lending with Basel III compliance
 import numpy as np
 import json
 import sys
+import os
+import pickle
+import subprocess
+import tempfile
 from typing import Dict, List, Tuple
+
+os.environ.setdefault('OMP_NUM_THREADS', '1')
+os.environ.setdefault('MKL_NUM_THREADS', '1')
+os.environ.setdefault('OPENBLAS_NUM_THREADS', '1')
+
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.multioutput import MultiOutputRegressor
-from xgboost import XGBRegressor
 import shap
 from sklearn.preprocessing import StandardScaler
+
+try:
+    from xgboost import XGBRegressor
+except Exception:
+    XGBRegressor = None
+
+XGB_WORKER_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'xgb_train_worker.py')
 
 class AgricultureMLModel:
     """
@@ -21,6 +36,7 @@ class AgricultureMLModel:
     """
 
     def __init__(self):
+        self.xgboost_enabled = self._should_enable_xgboost()
         # Indonesian SLIK (Sistem Layanan Informasi Keuangan) compatibility
         # Credit scores map to SLIK collectibility scale (1-5)
         self.SLIK_SYSTEM = {
@@ -87,17 +103,11 @@ class AgricultureMLModel:
             )
         )
         
-        self.xgboost = MultiOutputRegressor(
-            XGBRegressor(
-                n_estimators=1,    # Minimal boosting rounds
-                max_depth=3,       # Shallow trees for speed
-                learning_rate=0.3, # Higher learning rate for faster convergence
-                subsample=0.8,
-                colsample_bytree=0.8,
-                random_state=42,
-                n_jobs=-1
-            )
-        )
+        self.xgboost = None
+        if self.xgboost_enabled and XGBRegressor is not None:
+            self.xgboost = self._build_xgboost_model()
+        else:
+            print("XGBoost disabled; using Random Forest only.")
         
         self.scaler = StandardScaler()
         self.is_trained = False
@@ -109,38 +119,43 @@ class AgricultureMLModel:
     def _train_models(self):
         """Train Random Forest and XGBoost models with synthetic Indonesian agricultural data"""
         try:
-            # Generate minimal synthetic training data for fast initialization
-            n_samples = 5  # Minimal samples for quick training
+            # Generate richer Indonesia-focused training data
+            n_samples = 240
             X_train, y_train = self._generate_training_data(n_samples)
             
             # Normalize features
             X_train_scaled = self.scaler.fit_transform(X_train)
             
             # Train Random Forest for primary predictions
-            print("🌳 Training Random Forest model...")
+            print("Training Random Forest model...")
             self.random_forest.fit(X_train_scaled, y_train)
             
-            # Train XGBoost as ensemble component
-            print("🚀 Training XGBoost model...")
-            self.xgboost.fit(X_train_scaled, y_train)
+            # Train XGBoost as ensemble component (optional)
+            if self.xgboost is not None:
+                print("Training XGBoost model...")
+                self.xgboost = self._train_xgboost_safely(X_train_scaled, y_train)
             
             # Validate model performance
             rf_score = self.random_forest.score(X_train_scaled, y_train)
-            xgb_score = self.xgboost.score(X_train_scaled, y_train)
-            print(f"📈 Model Performance:")
-            print(f"   Random Forest R²: {rf_score:.3f}")
-            print(f"   XGBoost R²: {xgb_score:.3f}")
+            print(f"Model Performance:")
+            print(f"Random Forest R²: {rf_score:.3f}")
+            if self.xgboost is not None:
+                xgb_score = self.xgboost.score(X_train_scaled, y_train)
+                print(f"XGBoost R²: {xgb_score:.3f}")
             
             # Initialize SHAP explainer for the first estimator (Credit Score)
-            print("🔍 Initializing SHAP explainer...")
+            print("Initializing SHAP explainer...")
             # Use the first estimator from MultiOutputRegressor for SHAP (Credit Score prediction)
             self.shap_explainer = shap.TreeExplainer(self.random_forest.estimators_[0])
             
             self.is_trained = True
-            print("✅ Random Forest + XGBoost ensemble trained successfully!")
+            if self.xgboost is not None:
+                print("Random Forest + XGBoost ensemble trained successfully!")
+            else:
+                print("Random Forest model trained successfully!")
             
         except Exception as e:
-            print(f"⚠️ Model training failed: {e}, using fallback calculations")
+            print(f"Model training failed: {e}, using fallback calculations")
             self.is_trained = False
 
     def _generate_training_data(self, n_samples):
@@ -151,16 +166,36 @@ class AgricultureMLModel:
         X = np.zeros((n_samples, 320))
         
         # === REALISTIC INDONESIAN FARM PROFILES ===
-        # Farm sizes (hectares) - realistic distribution for Indonesia
-        farm_sizes = np.random.choice([0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 5.0, 10.0, 20.0], 
-                                    n_samples, p=[0.15, 0.2, 0.15, 0.15, 0.12, 0.1, 0.08, 0.03, 0.015, 0.005])
-        
         # Crop types (0=rice, 1=palm oil, 2=coffee, 3=cocoa, 4=rubber)
-        crop_types = np.random.choice([0, 1, 2, 3, 4], n_samples, p=[0.4, 0.25, 0.15, 0.1, 0.1])
-        
-        # Geographic locations (Indonesia coordinates)
-        latitudes = np.random.uniform(-8.5, 5.5, n_samples)  # Indonesia latitude range
-        longitudes = np.random.uniform(95, 141, n_samples)  # Indonesia longitude range
+        crop_types = np.random.choice([0, 1, 2, 3, 4], n_samples, p=[0.38, 0.27, 0.13, 0.12, 0.10])
+
+        # Indonesia regional farm templates to diversify examples
+        regional_profiles = [
+            {'name': 'West Java Rice Belt', 'lat': -6.32, 'lon': 108.33, 'size_range': (0.4, 3.5), 'crop_bias': [0, 2, 3]},
+            {'name': 'Central Java Coffee Highlands', 'lat': -7.31, 'lon': 110.18, 'size_range': (0.3, 2.2), 'crop_bias': [2, 0, 3]},
+            {'name': 'Riau Palm Cluster', 'lat': 0.50, 'lon': 101.45, 'size_range': (1.5, 12.0), 'crop_bias': [1, 4, 3]},
+            {'name': 'South Sumatra Mixed Farms', 'lat': -3.05, 'lon': 104.75, 'size_range': (0.8, 6.0), 'crop_bias': [1, 0, 3]},
+            {'name': 'Lampung Coffee-Rice Zone', 'lat': -5.11, 'lon': 105.31, 'size_range': (0.5, 4.0), 'crop_bias': [2, 0, 4]},
+            {'name': 'South Sulawesi Cocoa Belt', 'lat': -4.00, 'lon': 119.65, 'size_range': (0.6, 5.0), 'crop_bias': [3, 0, 2]},
+            {'name': 'East Kalimantan Estate Zone', 'lat': 0.20, 'lon': 117.20, 'size_range': (2.0, 20.0), 'crop_bias': [1, 4, 3]},
+            {'name': 'West Nusa Tenggara Dryland Farms', 'lat': -8.65, 'lon': 117.36, 'size_range': (0.5, 4.5), 'crop_bias': [0, 4, 3]}
+        ]
+
+        latitudes = np.zeros(n_samples)
+        longitudes = np.zeros(n_samples)
+        farm_sizes = np.zeros(n_samples)
+        region_names = []
+
+        for i in range(n_samples):
+            profile = regional_profiles[i % len(regional_profiles)]
+            latitudes[i] = np.clip(np.random.normal(profile['lat'], 0.45), -9.0, 6.0)
+            longitudes[i] = np.clip(np.random.normal(profile['lon'], 0.55), 95.0, 141.0)
+            farm_sizes[i] = np.round(np.random.uniform(*profile['size_range']), 2)
+            region_names.append(profile['name'])
+
+            # Push crop assignment toward locally dominant crops in each region
+            if np.random.rand() < 0.72:
+                crop_types[i] = profile['crop_bias'][np.random.randint(0, len(profile['crop_bias']))]
         
         # === SATELLITE FEATURES (256 dimensions) ===
         for i in range(n_samples):
@@ -179,7 +214,7 @@ class AgricultureMLModel:
                 X[i, 0:64] = np.random.normal(vegetation_base, 0.1, 64)
             
             # Crop health indices (features 64-128)
-            health_factor = 0.8 if farm_sizes[i] > 2.0 else 0.7  # Larger farms better managed
+            health_factor = 0.8 if farm_sizes[i] >2.0 else 0.7  # Larger farms better managed
             if -8 <= latitudes[i] <= -6:  # Java region - better infrastructure
                 health_factor += 0.1
             X[i, 64:128] = np.random.normal(health_factor, 0.15, 64)
@@ -195,7 +230,7 @@ class AgricultureMLModel:
             
             # Water and irrigation features (features 192-256)
             water_access = 0.8 if crop_types[i] == 0 else 0.6  # Rice needs more water
-            if farm_sizes[i] > 5.0:  # Large farms have better irrigation
+            if farm_sizes[i] >5.0:  # Large farms have better irrigation
                 water_access += 0.1
             X[i, 192:256] = np.random.normal(water_access, 0.12, 64)
         
@@ -288,7 +323,7 @@ class AgricultureMLModel:
             
             # LGD calculation (varies with collateral and location)
             base_lgd = 0.35
-            if farm_sizes[i] > 2.0:  # Larger farms = better collateral
+            if farm_sizes[i] >2.0:  # Larger farms = better collateral
                 base_lgd -= 0.1
             if -8 <= latitudes[i] <= -6:  # Java = better land values
                 base_lgd -= 0.05
@@ -303,16 +338,22 @@ class AgricultureMLModel:
         # Stack targets for multi-output regression
         y = np.column_stack([credit_scores, pd_values, lgd_values, ead_values])
         
-        print(f"📊 Generated {n_samples} training samples:")
-        print(f"   Credit Scores: {credit_scores.min():.0f}-{credit_scores.max():.0f} (avg: {credit_scores.mean():.0f})")
-        print(f"   PD Range: {pd_values.min():.3f}-{pd_values.max():.3f} (avg: {pd_values.mean():.3f})")
-        print(f"   Farm Sizes: {farm_sizes.min():.1f}-{farm_sizes.max():.1f} hectares")
-        print(f"   Crop Distribution: Rice={np.sum(crop_types==0)}, Palm={np.sum(crop_types==1)}, Coffee={np.sum(crop_types==2)}")
+        print(f"Generated {n_samples} training samples:")
+        print(f"Credit Scores: {credit_scores.min():.0f}-{credit_scores.max():.0f} (avg: {credit_scores.mean():.0f})")
+        print(f"PD Range: {pd_values.min():.3f}-{pd_values.max():.3f} (avg: {pd_values.mean():.3f})")
+        print(f"Farm Sizes: {farm_sizes.min():.1f}-{farm_sizes.max():.1f} hectares")
+        print(
+            "Crop Distribution: "
+            f"Rice={np.sum(crop_types==0)}, Palm={np.sum(crop_types==1)}, Coffee={np.sum(crop_types==2)}, "
+            f"Cocoa={np.sum(crop_types==3)}, Rubber={np.sum(crop_types==4)}"
+        )
+        unique_regions = sorted(set(region_names))
+        print(f"Regional Profiles: {len(unique_regions)} Indonesian farming clusters")
         
         return X, y
 
     def calculate_credit_score(self, farm_data: Dict, satellite_features: np.ndarray = None, 
-                             weather_features: np.ndarray = None) -> Dict:
+                             weather_features: np.ndarray = None) ->Dict:
         """
         Calculate credit score using Random Forest + XGBoost ensemble with Basel III compliance
         
@@ -378,12 +419,16 @@ class AgricultureMLModel:
                         'lossGivenDefaultPercent': f"{float(lgd)*100:.1f}%",
                         'exposureAtDefault': f"Rp {float(ead):,.0f}",
                         'expectedCreditLoss': f"Rp {float(ecl):,.0f}",
-                        'expectedCreditLossPercent': f"{(float(ecl)/float(ead))*100:.2f}%" if ead > 0 else "0.00%"
+                        'expectedCreditLossPercent': f"{(float(ecl)/float(ead))*100:.2f}%"if ead >0 else "0.00%"
                     },
                     
-                    'methodology': 'Random Forest + XGBoost Ensemble with Prithvi-EO-2.0-300M Satellite Features',
+                    'methodology': (
+                        'Random Forest + XGBoost Ensemble with Prithvi-EO-2.0-300M Satellite Features'
+                        if self.xgboost is not None else
+                        'Random Forest with Prithvi-EO-2.0-300M Satellite Features'
+                    ),
                     'modelInfo': {
-                        'algorithm': 'Random Forest + XGBoost',
+                        'algorithm': 'Random Forest + XGBoost'if self.xgboost is not None else 'Random Forest',
                         'features_used': 320,
                         'satellite_model': 'IBM/NASA Prithvi-EO-2.0-300M',
                         'weather_source': 'OpenWeatherMap API',
@@ -400,7 +445,7 @@ class AgricultureMLModel:
             }
 
     def _prepare_feature_vector(self, farm_data: Dict, satellite_features: np.ndarray = None, 
-                               weather_features: np.ndarray = None) -> np.ndarray:
+                               weather_features: np.ndarray = None) ->np.ndarray:
         """Prepare 320-dimensional feature vector for ML models"""
         features = np.zeros(320)
         
@@ -420,18 +465,20 @@ class AgricultureMLModel:
         
         return features
 
-    def _predict_with_ensemble(self, features: np.ndarray) -> Tuple[float, float, float, float]:
+    def _predict_with_ensemble(self, features: np.ndarray) ->Tuple[float, float, float, float]:
         """Use Random Forest + XGBoost ensemble for prediction"""
         features_scaled = self.scaler.transform(features.reshape(1, -1))
         
         # Random Forest prediction (multi-output)
         rf_pred = self.random_forest.predict(features_scaled)[0]  # Shape: (4,) for 4 outputs
         
-        # XGBoost prediction (multi-output)
-        xgb_pred = self.xgboost.predict(features_scaled)[0]  # Shape: (4,) for 4 outputs
-        
-        # Ensemble (weighted average)
-        ensemble_pred = 0.7 * rf_pred + 0.3 * xgb_pred
+        # XGBoost prediction (multi-output, optional)
+        if self.xgboost is not None:
+            xgb_pred = self.xgboost.predict(features_scaled)[0]  # Shape: (4,) for 4 outputs
+            # Ensemble (weighted average)
+            ensemble_pred = 0.7 * rf_pred + 0.3 * xgb_pred
+        else:
+            ensemble_pred = rf_pred
         
         # Extract individual predictions with proper bounds
         credit_score = np.clip(ensemble_pred[0], 300, 850)
@@ -441,7 +488,77 @@ class AgricultureMLModel:
         
         return credit_score, pd, lgd, ead
 
-    def _calculate_shap_explanations(self, features: np.ndarray) -> Dict:
+    def _build_xgboost_model(self):
+        """Create a stable XGBoost multi-target regressor."""
+        return MultiOutputRegressor(
+            XGBRegressor(
+                n_estimators=80,
+                max_depth=5,
+                learning_rate=0.08,
+                subsample=0.8,
+                colsample_bytree=0.8,
+                random_state=42,
+                n_jobs=1,
+                tree_method='hist',
+                objective='reg:squarederror',
+            )
+        )
+
+    def _torch_is_loaded(self) ->bool:
+        """Detect PyTorch import, which can crash XGBoost training on macOS."""
+        return 'torch'in sys.modules
+
+    def _train_xgboost_safely(self, X_train_scaled: np.ndarray, y_train: np.ndarray):
+        """
+        Train XGBoost in-process when safe, otherwise in an isolated subprocess.
+        PyTorch + XGBoost in the same process can segfault on Apple Silicon.
+        """
+        if self._torch_is_loaded():
+            print("PyTorch detected; training XGBoost in isolated subprocess...")
+            return self._train_xgboost_in_subprocess(X_train_scaled, y_train)
+
+        try:
+            model = self._build_xgboost_model()
+            model.fit(X_train_scaled, y_train)
+            return model
+        except Exception as error:
+            print(f"In-process XGBoost training failed ({error}); retrying in subprocess...")
+            return self._train_xgboost_in_subprocess(X_train_scaled, y_train)
+
+    def _train_xgboost_in_subprocess(self, X_train_scaled: np.ndarray, y_train: np.ndarray):
+        """Train XGBoost in a clean child process and load the fitted model."""
+        with tempfile.TemporaryDirectory(prefix='agri-xgb-') as temp_dir:
+            input_path = os.path.join(temp_dir, 'train_data.npz')
+            output_path = os.path.join(temp_dir, 'xgb_model.pkl')
+            np.savez(input_path, X=X_train_scaled, y=y_train)
+
+            result = subprocess.run(
+                [sys.executable, XGB_WORKER_SCRIPT, input_path, output_path],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode != 0:
+                stderr = (result.stderr or '').strip()
+                raise RuntimeError(f"Isolated XGBoost training failed: {stderr or 'unknown error'}")
+
+            with open(output_path, 'rb') as model_file:
+                return pickle.load(model_file)
+
+    def _should_enable_xgboost(self) ->bool:
+        """
+        Decide whether XGBoost should be enabled in this runtime.
+        Default is safe mode on environments known to hit native crashes.
+        """
+        override = os.environ.get("AGRI_ENABLE_XGBOOST")
+        if override is not None:
+            return override.strip().lower() in ("1", "true", "yes", "on")
+
+        # Enable XGBoost by default when available.
+        # Set AGRI_ENABLE_XGBOOST=false to force-disable if needed.
+        return XGBRegressor is not None
+
+    def _calculate_shap_explanations(self, features: np.ndarray) ->Dict:
         """Calculate SHAP values for model explainability"""
         if self.shap_explainer is None:
             return None
@@ -456,7 +573,7 @@ class AgricultureMLModel:
                 credit_score_shap = shap_values[0]  # First sample
             else:
                 # Fallback for unexpected shapes
-                credit_score_shap = shap_values.flatten() if shap_values.ndim > 1 else shap_values
+                credit_score_shap = shap_values.flatten() if shap_values.ndim >1 else shap_values
             
             # Enhanced feature names for better interpretation
             feature_names = []
@@ -486,7 +603,7 @@ class AgricultureMLModel:
             
             # Normalize SHAP values to 0-100 scale for interpretability
             # Credit score range is 300-850 (total range: 550)
-            max_abs_shap = np.max(np.abs(credit_score_shap)) if len(credit_score_shap) > 0 else 1.0
+            max_abs_shap = np.max(np.abs(credit_score_shap)) if len(credit_score_shap) >0 else 1.0
             
             # Get top 10 most important features by absolute SHAP value
             importance_indices = np.argsort(np.abs(credit_score_shap))[-10:][::-1]
@@ -502,7 +619,7 @@ class AgricultureMLModel:
                 feat_val = float(features[idx])
                 
                 # Normalize SHAP value to 0-1 scale based on maximum impact
-                normalized_shap = (raw_shap_val / max_abs_shap) if max_abs_shap > 0 else 0.0
+                normalized_shap = (raw_shap_val / max_abs_shap) if max_abs_shap >0 else 0.0
                 
                 # Credit Score explanation with normalized SHAP
                 credit_features.append({
@@ -510,8 +627,8 @@ class AgricultureMLModel:
                     'shap_value': round(normalized_shap, 4),  # Normalized 0-1 scale
                     'raw_shap_value': round(raw_shap_val, 4),  # Keep raw value for reference
                     'feature_value': feat_val,
-                    'impact': 'positive' if raw_shap_val > 0 else 'negative',
-                    'impact_strength': 'high' if abs(normalized_shap) > 0.5 else 'medium' if abs(normalized_shap) > 0.2 else 'low'
+                    'impact': 'positive'if raw_shap_val >0 else 'negative',
+                    'impact_strength': 'high'if abs(normalized_shap) >0.5 else 'medium'if abs(normalized_shap) >0.2 else 'low'
                 })
                 
                 # For other Basel III parameters, derive from normalized credit score SHAP
@@ -521,12 +638,12 @@ class AgricultureMLModel:
                     'feature': feature_names[idx],
                     'shap_value': round(pd_shap_normalized, 4),
                     'feature_value': feat_val,
-                    'impact': 'negative' if pd_shap_normalized > 0 else 'positive',
-                    'impact_strength': 'high' if abs(pd_shap_normalized) > 0.05 else 'medium' if abs(pd_shap_normalized) > 0.02 else 'low'
+                    'impact': 'negative'if pd_shap_normalized >0 else 'positive',
+                    'impact_strength': 'high'if abs(pd_shap_normalized) >0.05 else 'medium'if abs(pd_shap_normalized) >0.02 else 'low'
                 })
                 
                 # LGD - focus on collateral-related features (0-1 scale)
-                if 'farm_size' in feature_names[idx] or 'soil_quality' in feature_names[idx]:
+                if 'farm_size'in feature_names[idx] or 'soil_quality'in feature_names[idx]:
                     lgd_shap_normalized = -normalized_shap * 0.05  # Negative correlation with quality
                 else:
                     lgd_shap_normalized = normalized_shap * 0.02
@@ -535,12 +652,12 @@ class AgricultureMLModel:
                     'feature': feature_names[idx],
                     'shap_value': round(lgd_shap_normalized, 4),
                     'feature_value': feat_val,
-                    'impact': 'negative' if lgd_shap_normalized > 0 else 'positive',
-                    'impact_strength': 'high' if abs(lgd_shap_normalized) > 0.05 else 'medium' if abs(lgd_shap_normalized) > 0.02 else 'low'
+                    'impact': 'negative'if lgd_shap_normalized >0 else 'positive',
+                    'impact_strength': 'high'if abs(lgd_shap_normalized) >0.05 else 'medium'if abs(lgd_shap_normalized) >0.02 else 'low'
                 })
                 
                 # EAD - related to loan size and farm value (keep monetary scale but normalize base impact)
-                if 'farm_size' in feature_names[idx] or 'crop' in feature_names[idx]:
+                if 'farm_size'in feature_names[idx] or 'crop'in feature_names[idx]:
                     ead_shap_normalized = normalized_shap * 10000000  # Scale for monetary impact
                 else:
                     ead_shap_normalized = normalized_shap * 5000000
@@ -549,8 +666,8 @@ class AgricultureMLModel:
                     'feature': feature_names[idx],
                     'shap_value': round(ead_shap_normalized, 0),
                     'feature_value': feat_val,
-                    'impact': 'positive' if ead_shap_normalized > 0 else 'negative',
-                    'impact_strength': 'high' if abs(ead_shap_normalized) > 5000000 else 'medium' if abs(ead_shap_normalized) > 2000000 else 'low'
+                    'impact': 'positive'if ead_shap_normalized >0 else 'negative',
+                    'impact_strength': 'high'if abs(ead_shap_normalized) >5000000 else 'medium'if abs(ead_shap_normalized) >2000000 else 'low'
                 })
             
             # Calculate baseline (average credit score normalized to 0-1 scale)
@@ -572,10 +689,10 @@ class AgricultureMLModel:
             }
             
         except Exception as e:
-            print(f"⚠️ SHAP calculation failed: {e}")
+            print(f"SHAP calculation failed: {e}")
             return None
 
-    def _fallback_calculation(self, farm_data: Dict) -> Tuple[float, float, float, float]:
+    def _fallback_calculation(self, farm_data: Dict) ->Tuple[float, float, float, float]:
         """Fallback calculation when ML models are not available"""
         base_score = 500
         
@@ -599,12 +716,12 @@ class AgricultureMLModel:
         pd = 0.01 + 0.15 * (1 - (credit_score - 300) / 550) ** 1.5
         pd = np.clip(pd, 0.001, 0.2)
         
-        lgd = 0.4 if farm_data.get('collateralType') == 'land' else 0.6
+        lgd = 0.4 if farm_data.get('collateralType') == 'land'else 0.6
         ead = float(farm_data.get('loanAmount', 50_000_000))
         
         return credit_score, pd, lgd, ead
 
-    def _get_risk_level(self, credit_score: float) -> str:
+    def _get_risk_level(self, credit_score: float) ->str:
         """Map credit score to risk level"""
         if credit_score >= 750:
             return 'excellent'
@@ -615,7 +732,7 @@ class AgricultureMLModel:
         else:
             return 'poor'
 
-    def _map_to_slik(self, credit_score: float) -> int:
+    def _map_to_slik(self, credit_score: float) ->int:
         """Map credit score to Indonesian SLIK rating (1-5)"""
         if credit_score >= 750:
             return 1  # Lancar

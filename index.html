@@ -15,24 +15,22 @@
 <body>
     <div class="header">
         <div class="header-flex">
-            <h1>🛰️🌦️ Agri-Access</h1>
+            <h1>Agri-Access</h1>
             <div class="header-buttons">
-                <button onclick="document.documentElement.requestFullscreen()" class="header-btn">
-                    🖥️ Present
+                <a href="/" class="header-btn">Home</a>
+                <button onclick="document.documentElement.requestFullscreen()" class="header-btn">Present
                 </button>
             </div>
         </div>
         <p>Alternative Credit Scoring Platform for Banks</p>
-        <div class="header-subtitle">
-            B2B Banking Infrastructure • Basel III Compliance • Satellite Risk Assessment
+        <div class="header-subtitle">B2B Banking Infrastructure • Basel III Compliance • Satellite Risk Assessment
         </div>
     </div>
         
     <div class="main-grid">
             <div class="control-panel">
 
-                <h2 class="section-title" style="margin-top: 25px;">
-                    📍 Farm Information
+                <h2 class="section-title" style="margin-top: 25px;">Farm Information
                 </h2>
                 
                 <div class="form-group">
@@ -67,11 +65,9 @@
                 </div>
                 
                 
-                <h3 class="section-subtitle" style="margin-top: 25px; color: #2E7D32; font-size: 1.1em;">
-                    💰 Loan Application
+                <h3 class="section-subtitle" style="margin-top: 25px; color: #2E7D32; font-size: 1.1em;">Loan Application
                 </h3>
-                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                    Credit application details and loan requirements
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Credit application details and loan requirements
                 </p>
                 
                 <div class="form-group">
@@ -109,17 +105,20 @@
                 </div>
                 
                 <div class="demo-locations">
-    <h4>🎯 Indonesian Farm Locations</h4>
-                    <button class="demo-btn" onclick="loadDemoLocation('siti')">🌾 Indramayu Rice Farm</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('budi')">🌴 Riau Palm Oil Plantation</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('ratna')">☕ Temanggung Coffee Farm</button>
-                    <div style="font-size: 10px; color: #666; margin-top: 5px;">
-                        Coordinates from major Indonesian agricultural regions
+    <h4>Indonesian Farm Locations</h4>
+                    <button class="demo-btn" onclick="loadDemoLocation('siti')">Indramayu Rice Farm</button>
+                    <button class="demo-btn" onclick="loadDemoLocation('budi')">Riau Palm Oil Plantation</button>
+                    <button class="demo-btn" onclick="loadDemoLocation('ratna')">Temanggung Coffee Farm</button>
+                    <button class="demo-btn" onclick="loadDemoLocation('agus')">South Sumatra Cocoa Farm</button>
+                    <button class="demo-btn" onclick="loadDemoLocation('dewi')">Lampung Coffee Cooperative</button>
+                    <button class="demo-btn" onclick="loadDemoLocation('hasan')">South Sulawesi Cocoa Cluster</button>
+                    <button class="demo-btn" onclick="loadDemoLocation('made')">Lombok Dryland Rice Farm</button>
+                    <button class="demo-btn" onclick="loadDemoLocation('yusuf')">East Kalimantan Estate</button>
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">Coordinates from major Indonesian agricultural regions
                     </div>
                 </div>
                 
-                <button class="analyze-btn" id="analyzeButton" onclick="analyzeWithRealNASAData()">
-                    🚀 Analyze Credit Risk
+                <button class="analyze-btn" id="analyzeButton" onclick="analyzeWithRealNASAData()">Analyze Credit Risk
                 </button>
                 
                 
@@ -140,14 +139,12 @@
                 </div>
                 
                 <div class="satellite-images-section">
-                    <div class="satellite-images-title">
-                        📸 Satellite & Weather Images
+                    <div class="satellite-images-title">Satellite & Weather Images
                     </div>
                     <div id="satelliteImagesGrid" class="satellite-images-grid">
                         <div style="text-align: center; color: #999; font-size: 12px; grid-column: 1 / -1; padding: 20px; background: linear-gradient(135deg, #e8f5e8, #e3f2fd); border-radius: 8px; border: 2px dashed #4CAF50;">
-                            <div style="font-size: 16px; margin-bottom: 8px;">🛰️🌦️🤖</div>
-                            <strong>Analytics Ready</strong><br>
-                            Click "Analyze Credit Score" to view satellite imagery and weather data analysis
+                            <div style="font-size: 16px; margin-bottom: 8px;"></div>
+                            <strong>Analytics Ready</strong><br>Click "Analyze Credit Score" to view satellite imagery and weather data analysis
                         </div>
                     </div>
                 </div>
@@ -155,7 +152,7 @@
             
             <div class="results-panel">
                 <div style="background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center;">
-                    <h2 style="margin: 0; font-size: 1.3em;">📊 Basel III Credit Assessment</h2>
+                    <h2 style="margin: 0; font-size: 1.3em;">Basel III Credit Assessment</h2>
                     <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Processed satellite imagery, weather data, and traditional credit factors</p>
                 </div>
                 
@@ -163,7 +160,7 @@
                     
                     <!-- 1. PRIMARY RESULTS: Credit Score and Key Metrics -->
                     <div class="analysis-result">
-                        <h4>🎯 Credit Assessment Result</h4>
+                        <h4>Credit Assessment Result</h4>
                         <div id="creditScoreArc" style="min-height: 200px; margin: 15px 0;"></div>
                         
                         <!-- Key Loan Decision Metrics -->
@@ -189,7 +186,7 @@
                     
                     <!-- 2. LOAN TERMS & APPROVAL DETAILS -->
                     <div class="analysis-result" id="creditAnalysisSection">
-                        <h4>💰 Loan Assessment Details</h4>
+                        <h4>Loan Assessment Details</h4>
                         <div class="data-row">
                             <span class="data-label">Requested Amount:</span>
                             <span class="data-value" id="requestedLoanAmount">---</span>
@@ -205,7 +202,7 @@
                         
                         <!-- Basel III Risk Parameters - Collapsible -->
                         <details class="collapsible-section" style="margin-top: 20px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: #1976D2;">🏦 Basel III Risk Parameters</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: #1976D2;">Basel III Risk Parameters</summary>
                             <div class="basel-metrics-display" style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
                                 <div class="basel-metric">
                                     <div class="basel-label">Expected Credit Loss</div>
@@ -227,7 +224,7 @@
                     
                     <!-- 4. ENVIRONMENTAL CONDITIONS -->
                     <details class="collapsible-section analysis-result" id="currentWeatherSection" style="display: none;">
-                        <summary style="cursor: pointer; font-weight: 600; color: #FF9800;">🌦️ Environmental Risk Assessment</summary>
+                        <summary style="cursor: pointer; font-weight: 600; color: #FF9800;">Environmental Risk Assessment</summary>
                         <div style="padding: 15px; margin-top: 10px; background: #fff3e0; border-radius: 8px;">
                             <div class="data-row">
                                 <span class="data-label">Current Risk Level:</span>
@@ -258,18 +255,18 @@
                     
                     <!-- 5. DATA QUALITY & TECHNICAL DETAILS - Collapsible -->
                     <details class="collapsible-section analysis-result" id="dataQualitySection">
-                        <summary style="cursor: pointer; font-weight: 600; color: #2E7D32;">📡 Data Sources & Technical Details</summary>
+                        <summary style="cursor: pointer; font-weight: 600; color: #2E7D32;">Data Sources & Technical Details</summary>
                         <div style="padding: 15px; margin-top: 10px; background: #f1f8e9; border-radius: 8px;">
                             <div class="data-row">
-                                <span class="data-label">🌍 Google Earth Engine:</span>
+                                <span class="data-label">Google Earth Engine:</span>
                                 <span class="data-value" id="geeResult">---</span>
                             </div>
                             <div class="data-row">
-                                <span class="data-label">🗺️ NASA Cropland & Vegetation:</span>
+                                <span class="data-label">NASA Cropland & Vegetation:</span>
                                 <span class="data-value" id="nasaDataResult">---</span>
                             </div>
                             <div class="data-row">
-                                <span class="data-label">🌦️ Weather APIs:</span>
+                                <span class="data-label">Weather APIs:</span>
                                 <span class="data-value" id="weatherApiResult">---</span>
                             </div>
                             <div id="validationResults" style="margin-top: 15px;">
@@ -278,14 +275,14 @@
                             
                             <!-- Analysis Components -->
                             <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
-                                <h5 style="margin: 0 0 10px 0; color: #1976D2;">📊 Feature Processing Summary</h5>
+                                <h5 style="margin: 0 0 10px 0; color: #1976D2;">Feature Processing Summary</h5>
                                 <div id="scoreBreakdown" class="score-breakdown" style="display: block;">
                                     <div class="breakdown-item">
-                                        <span class="breakdown-label">🛰️ Satellite Features:</span>
+                                        <span class="breakdown-label">Satellite Features:</span>
                                         <span class="breakdown-value" id="satelliteContrib">---</span>
                                     </div>
                                     <div class="breakdown-item">
-                                        <span class="breakdown-label">🌦️ Weather Features:</span>
+                                        <span class="breakdown-label">Weather Features:</span>
                                         <span class="breakdown-value" id="weatherContrib">---</span>
                                     </div>
                                 </div>
@@ -296,16 +293,16 @@
                     
                     <!-- 3. FEATURE IMPORTANCE ANALYSIS -->
                     <div class="analysis-result" id="shapAnalysisSection">
-                        <h4>🔍 Credit Score Drivers</h4>
+                        <h4>Credit Score Drivers</h4>
                         <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                            <strong>SHAP Analysis:</strong> Shows how each feature contributed to the final credit score (from baseline to prediction).
+                            <strong>SHAP Analysis:</strong>Shows how each feature contributed to the final credit score (from baseline to prediction).
                         </p>
                         <div id="shapVisualization" style="min-height: 400px;"></div>
                     </div>
                     
                     <!-- 6. RECOMMENDATIONS -->
                     <div class="analysis-result" id="improvementSection">
-                        <h4>💡 Risk Mitigation Recommendations</h4>
+                        <h4>Risk Mitigation Recommendations</h4>
                         <div id="improvementSuggestions">
                             <!-- Suggestions will be populated by JavaScript -->
                         </div>
@@ -314,7 +311,7 @@
                 
                 <div id="failureResults" class="hidden">
                     <div class="analysis-result">
-                        <h4>❌ Satellite Data Access Failed</h4>
+                        <h4>Satellite Data Access Failed</h4>
                         <div class="data-row">
                             <span class="data-label">API Status:</span>
                             <span class="data-value error" id="apiError">---</span>
@@ -347,7 +344,7 @@
     <div id="imageModal" class="image-modal">
         <div class="image-modal-content">
             <div class="image-modal-header">
-                <h3 class="image-modal-title" id="modalTitle">🛰️ Real NASA Satellite Image</h3>
+                <h3 class="image-modal-title" id="modalTitle">Real NASA Satellite Image</h3>
                 <button class="close-modal" onclick="closeImageModal()">&times;</button>
             </div>
             

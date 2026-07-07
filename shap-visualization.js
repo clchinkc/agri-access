@@ -316,7 +316,7 @@ class SHAPVisualization {
         
         const title = document.createElement('h3');
         title.className = 'shap-title';
-        title.innerHTML = '🔍 <span>Feature Importance Analysis</span>';
+        title.innerHTML = ' <span>Feature Importance Analysis</span>';
         
         const controls = document.createElement('div');
         controls.className = 'shap-controls';
@@ -326,7 +326,7 @@ class SHAPVisualization {
         // Output selector
         const selector = document.createElement('select');
         selector.className = 'shap-output-selector';
-        selector.onchange = (e) => this.setOutput(e.target.value);
+        selector.onchange = (e) =>this.setOutput(e.target.value);
         
         const outputs = ['PD', 'LGD', 'EAD', 'Credit_Score'];
         outputs.forEach(output => {
@@ -412,10 +412,10 @@ class SHAPVisualization {
         // Sort features by absolute SHAP value
         const sortedFeatures = [...data]
             .slice(0, this.options.maxFeatures)
-            .sort((a, b) => Math.abs(b.shap_value) - Math.abs(a.shap_value));
+            .sort((a, b) =>Math.abs(b.shap_value) - Math.abs(a.shap_value));
         
         // Calculate max absolute value for scaling
-        const maxAbsValue = Math.max(...sortedFeatures.map(f => Math.abs(f.shap_value)));
+        const maxAbsValue = Math.max(...sortedFeatures.map(f =>Math.abs(f.shap_value)));
         
         // Add baseline
         const baseline = document.createElement('div');
@@ -481,7 +481,7 @@ class SHAPVisualization {
         const prediction = document.createElement('div');
         prediction.className = 'shap-prediction';
         
-        const totalContribution = sortedFeatures.reduce((sum, f) => sum + f.shap_value, 0);
+        const totalContribution = sortedFeatures.reduce((sum, f) =>sum + f.shap_value, 0);
         prediction.innerHTML = `
             <span class="shap-prediction-label">Model Prediction</span>
             <span class="shap-prediction-value">${(totalContribution).toFixed(3)}</span>
@@ -515,15 +515,14 @@ class SHAPVisualization {
             'satellite_evi': 'EVI'
         };
         
-        return nameMap[feature] || feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        return nameMap[feature] || feature.replace(/_/g, ' ').replace(/\b\w/g, l =>l.toUpperCase());
     }
     
     showTooltip(event, feature) {
         // Show tooltip with feature details
         const tooltip = this.tooltip;
         tooltip.innerHTML = `
-            <strong>${this.formatFeatureName(feature.feature)}</strong>
-            SHAP Value: ${feature.shap_value.toFixed(4)}
+            <strong>${this.formatFeatureName(feature.feature)}</strong>SHAP Value: ${feature.shap_value.toFixed(4)}
             Feature Value: ${feature.feature_value.toFixed(3)}
             Impact: ${feature.impact}
         `;
@@ -562,7 +561,7 @@ class SHAPVisualization {
             .join(', ');
         
         explanation.innerHTML = `
-            <h4>📊 ${outputLabel} Analysis</h4>
+            <h4> ${outputLabel} Analysis</h4>
             <p>This visualization shows how each feature contributes to the ${outputLabel.toLowerCase()} prediction. 
             Positive values (green) increase the prediction, while negative values (red) decrease it.</p>
             <p><strong>Top contributing features:</strong> ${topFeaturesList}</p>
@@ -591,13 +590,13 @@ class SHAPVisualization {
         if (!outputData || !outputData.length) return null;
         
         const topPositive = outputData
-            .filter(f => f.shap_value > 0)
-            .sort((a, b) => b.shap_value - a.shap_value)
+            .filter(f =>f.shap_value >0)
+            .sort((a, b) =>b.shap_value - a.shap_value)
             .slice(0, 3);
             
         const topNegative = outputData
-            .filter(f => f.shap_value < 0)
-            .sort((a, b) => a.shap_value - b.shap_value)
+            .filter(f =>f.shap_value < 0)
+            .sort((a, b) =>a.shap_value - b.shap_value)
             .slice(0, 3);
         
         return {

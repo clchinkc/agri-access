@@ -40,7 +40,7 @@ class PrithviFeatureExtractor:
         self.processor = None
         self.is_initialized = False
         
-        logger.info(f"🚀 Initializing Prithvi extractor on device: {self.device}")
+        logger.info(f"Initializing Prithvi extractor on device: {self.device}")
         
     def _get_best_device(self):
         """Auto-detect best available device"""
@@ -59,7 +59,7 @@ class PrithviFeatureExtractor:
             return
             
         try:
-            logger.info("📥 Loading Prithvi-EO-2.0-300M model...")
+            logger.info("Loading Prithvi-EO-2.0-300M model...")
             
             # Try to load model - this may fail if not available locally
             # For demo purposes, we'll use a vision transformer that can process satellite imagery
@@ -75,19 +75,19 @@ class PrithviFeatureExtractor:
                     self.model = self.model.to(self.device)
                 
                 self.model.eval()
-                logger.info("✅ Vision Transformer model loaded as Prithvi proxy!")
+                logger.info("Vision Transformer model loaded as Prithvi proxy!")
                 
             except Exception as vit_error:
-                logger.warning(f"⚠️ ViT model loading failed: {vit_error}")
+                logger.warning(f"ViT model loading failed: {vit_error}")
                 # Use a minimal mock transformer
-                logger.info("🔄 Using enhanced feature extraction without foundation model...")
+                logger.info("Using enhanced feature extraction without foundation model...")
                 self.model = None
                 self.processor = None
             
             self.is_initialized = True
             
         except Exception as e:
-            logger.error(f"❌ Failed to load any model: {e}")
+            logger.error(f"Failed to load any model: {e}")
             # Fallback to mock features if model loading fails
             self.is_initialized = False
             
@@ -120,7 +120,7 @@ class PrithviFeatureExtractor:
             return image
             
         except Exception as e:
-            logger.warning(f"⚠️ Failed to download image {image_url}: {e}")
+            logger.warning(f"Failed to download image {image_url}: {e}")
             return None
     
     def preprocess_image(self, image):
@@ -149,7 +149,7 @@ class PrithviFeatureExtractor:
             return inputs
             
         except Exception as e:
-            logger.error(f"❌ Image preprocessing failed: {e}")
+            logger.error(f"Image preprocessing failed: {e}")
             return None
     
     def extract_features_from_image(self, image):
@@ -185,7 +185,7 @@ class PrithviFeatureExtractor:
                     # Use mean pooling if no pooler output
                     features = outputs.last_hidden_state.mean(dim=1)
                 else:
-                    logger.warning("⚠️ Unexpected model output format")
+                    logger.warning("Unexpected model output format")
                     return None
                 
                 # Convert to CPU numpy array
@@ -194,7 +194,7 @@ class PrithviFeatureExtractor:
                 return features
                 
         except Exception as e:
-            logger.error(f"❌ Feature extraction failed: {e}")
+            logger.error(f"Feature extraction failed: {e}")
             return None
     
     def extract_agricultural_features(self, satellite_urls, farm_data):
@@ -215,7 +215,7 @@ class PrithviFeatureExtractor:
         expected_dim = 768
         
         for source_name, url in satellite_urls.items():
-            logger.info(f"🛰️ Processing {source_name} imagery...")
+            logger.info(f"Processing {source_name} imagery...")
             
             # Download image
             image = self.download_satellite_image(url)
@@ -231,13 +231,13 @@ class PrithviFeatureExtractor:
             
             if prithvi_features is not None:
                 features[f"{source_name}_features"] = prithvi_features
-                logger.info(f"✅ Extracted {len(prithvi_features)} features from {source_name}")
+                logger.info(f"Extracted {len(prithvi_features)} features from {source_name}")
             else:
                 # Fallback to synthetic features
                 features[f"{source_name}_features"] = self._generate_fallback_features(
                     source_name, farm_data, expected_dim
                 )
-                logger.warning(f"⚠️ Using fallback features for {source_name}")
+                logger.warning(f"Using fallback features for {source_name}")
         
         # Aggregate features into a single vector
         all_features = []
@@ -265,19 +265,19 @@ class PrithviFeatureExtractor:
         base_features = np.random.normal(0, 0.1, dim)
         
         # Add source-specific patterns for diverse satellite sources
-        if 'landsat' in source_name:
+        if 'landsat'in source_name:
             base_features[:50] += np.random.normal(0.2, 0.05, 50)  # 30m true color patterns
-        elif 'sentinel' in source_name:
+        elif 'sentinel'in source_name:
             base_features[50:100] += np.random.normal(0.3, 0.1, 50)  # 10m false color/vegetation patterns
-        elif 'gfsad' in source_name:
+        elif 'gfsad'in source_name:
             base_features[100:150] += np.random.normal(0.25, 0.08, 50)  # Cropland classification patterns
-        elif 'modis-ndvi' in source_name:
+        elif 'modis-ndvi'in source_name:
             base_features[150:200] += np.random.normal(0.35, 0.12, 50)  # 8-day NDVI vegetation patterns
-        elif 'viirs' in source_name:
+        elif 'viirs'in source_name:
             base_features[200:250] += np.random.normal(0.15, 0.06, 50)  # Day/night infrastructure patterns
-        elif 'thermal' in source_name:
+        elif 'thermal'in source_name:
             base_features[250:300] += np.random.normal(0.18, 0.07, 50)  # Thermal analysis patterns
-        elif 'modis' in source_name:
+        elif 'modis'in source_name:
             base_features[300:350] += np.random.normal(0.15, 0.05, 50)  # General MODIS patterns
         
         # Agricultural influence
@@ -301,17 +301,17 @@ class PrithviFeatureExtractor:
             feature_array = np.array(all_features)
             
             # Compute agricultural indices
-            indices['vegetation_health'] = np.mean(feature_array[:50]) if len(feature_array) > 50 else 0.5
-            indices['crop_stress'] = np.std(feature_array[50:100]) if len(feature_array) > 100 else 0.2
-            indices['water_content'] = np.mean(feature_array[100:150]) if len(feature_array) > 150 else 0.6
-            indices['soil_quality'] = np.mean(feature_array[150:200]) if len(feature_array) > 200 else 0.7
+            indices['vegetation_health'] = np.mean(feature_array[:50]) if len(feature_array) >50 else 0.5
+            indices['crop_stress'] = np.std(feature_array[50:100]) if len(feature_array) >100 else 0.2
+            indices['water_content'] = np.mean(feature_array[100:150]) if len(feature_array) >150 else 0.6
+            indices['soil_quality'] = np.mean(feature_array[150:200]) if len(feature_array) >200 else 0.7
             
             # Farm-specific adjustments
             farm_size = farm_data.get('farm_size', 1.0)
             indices['farm_management'] = min(1.0, 0.5 + farm_size * 0.1)
             
         except Exception as e:
-            logger.warning(f"⚠️ Agricultural indices computation failed: {e}")
+            logger.warning(f"Agricultural indices computation failed: {e}")
             # Fallback indices
             indices = {
                 'vegetation_health': 0.7,
