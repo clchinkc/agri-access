@@ -58,6 +58,7 @@ MODEL_VERSION = "Prithvi-RF-XGBoost-v2.0"
 STRICT_REAL_ANALYSIS = os.environ.get("AGRI_STRICT_REAL_ANALYSIS", "false").strip().lower() in ("1", "true", "yes", "on")
 API_AUTH_TOKEN = os.environ.get("AGRI_API_AUTH_TOKEN", "").strip()
 API_AUTH_COOKIE_NAME = "agri_api_auth"
+PRIVATE_PLATFORM_ENABLED = os.environ.get("AGRI_ENABLE_PRIVATE_PLATFORM", "false").strip().lower() in ("1", "true", "yes", "on")
 
 # Configure Gemini API from environment (see .env)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
@@ -85,6 +86,12 @@ model_state = ModelState()
 @app.before_request
 def enforce_api_auth():
     """Protect API routes when AGRI_API_AUTH_TOKEN is set."""
+    if request.path.startswith("/api/") and not PRIVATE_PLATFORM_ENABLED:
+        return jsonify({
+            "success": False,
+            "error": "Not found"
+        }), 404
+
     if not API_AUTH_TOKEN:
         return None
 
@@ -945,12 +952,16 @@ def serve_home():
 @app.route('/platform')
 def serve_platform():
     """Serve the credit scoring platform."""
+    if not PRIVATE_PLATFORM_ENABLED:
+        return send_from_directory('.', 'home.html'), 404
     response = make_response(send_from_directory('.', 'index.html'))
     return with_platform_auth_cookie(response)
 
 @app.route('/app')
 def serve_platform_alias():
     """Alias for the credit scoring platform."""
+    if not PRIVATE_PLATFORM_ENABLED:
+        return send_from_directory('.', 'home.html'), 404
     response = make_response(send_from_directory('.', 'index.html'))
     return with_platform_auth_cookie(response)
 
@@ -1343,6 +1354,8 @@ def serve_static(filename):
     base_name = os.path.basename(filename)
     if base_name in blocked_names or base_name.startswith(blocked_prefixes):
         return jsonify({'error': 'Not found'}), 404
+    if not PRIVATE_PLATFORM_ENABLED and base_name in {'index.html', 'app.js', 'shared.js', 'shap-visualization.js', 'farmer-explanation.js', 'credit-score-arc.js', 'styles.css', 'shared.css'}:
+        return jsonify({'error': 'Not found'}), 404
     return send_from_directory('.', filename)
 
 # Mock Basel III Calculation Functions
@@ -1575,7 +1588,10 @@ if __name__ == '__main__':
     
     print(f"Starting server on http://localhost:{PORT}")
     print(f"Landing page: http://localhost:{PORT}/")
-    print(f"Credit platform: http://localhost:{PORT}/platform")
+    if PRIVATE_PLATFORM_ENABLED:
+        print(f"Credit platform: http://localhost:{PORT}/platform")
+    else:
+        print("Credit platform is disabled (set AGRI_ENABLE_PRIVATE_PLATFORM=true for local access)")
     print(f"API endpoints: http://localhost:{PORT}/api/")
     print("="* 50)
     print("Ready for Basel III credit scoring!")

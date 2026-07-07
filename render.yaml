@@ -17,3 +17,5 @@ services:
         sync: false
       - key: AGRI_STRICT_REAL_ANALYSIS
         value: "false"
+      - key: AGRI_ENABLE_PRIVATE_PLATFORM
+        value: "false"

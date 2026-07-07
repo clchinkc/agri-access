@@ -280,6 +280,32 @@ a {
     gap: 20px;
 }
 
+.case-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.case-card {
+    background: var(--white);
+    border: 1px solid #dfe7e2;
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: 0 6px 24px rgba(26, 35, 50, 0.07);
+}
+
+.case-card h3 {
+    color: var(--green-700);
+    margin-bottom: 10px;
+    font-size: 1.05rem;
+}
+
+.case-card p {
+    color: var(--slate-700);
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+}
+
 .feature-card {
     background: var(--white);
     border: 1px solid #e8edf2;

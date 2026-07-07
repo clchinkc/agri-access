@@ -62,6 +62,17 @@ For direct API clients, send either:
 - `Authorization: Bearer your-strong-demo-token`, or
 - `X-API-Key: your-strong-demo-token`
 
+### Public Demo vs Private Platform
+- **Public demo deploy**: keep `AGRI_ENABLE_PRIVATE_PLATFORM=false` (default). Only the feasibility landing demo is exposed.
+- **Private local platform**: run locally with:
+
+```bash
+export AGRI_ENABLE_PRIVATE_PLATFORM=true
+python3 basel_iii_api.py
+```
+
+This enables `/platform` and all `/api/*` routes only in your local/private environment.
+
 ### Demo Scenarios
 - **Rice farmer** (West Java) - Good credit example
 - **Palm oil farmer** (Sumatra) - Excellent credit example  
