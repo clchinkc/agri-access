@@ -921,8 +921,8 @@ def generate_gemini_explanation(credit_data, shap_data, weather_data, satellite_
         print(f"🤖 Initializing Gemini model...", flush=True)
         sys.stdout.flush()
         # Initialize Gemini model - using latest flash model for speed and cost efficiency
-        model = genai.GenerativeModel('models/gemini-2.5-flash')
-        print(f"✅ Gemini model initialized (gemini-2.5-flash)", flush=True)
+        model = genai.GenerativeModel('models/gemini-3.8-flash')
+        print(f"✅ Gemini model initialized (gemini-3.8-flash)", flush=True)
         sys.stdout.flush()
         
         # Prepare context for Gemini
