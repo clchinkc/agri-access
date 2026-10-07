@@ -12,6 +12,8 @@ Features:
 - Indonesian agricultural context
 """
 
+import os
+
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import numpy as np
@@ -57,10 +59,19 @@ CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Con
 API_VERSION = "1.0.0"
 MODEL_VERSION = "Prithvi-RF-XGBoost-v2.0"
 
-# Configure Gemini API
-GEMINI_API_KEY = "***REMOVED-CREDENTIAL***"
+# Configure Gemini API.
+# The key is read from the environment and MUST NEVER be committed. An earlier
+# revision hard-coded it here; that value is in this repository's public history
+# and must be treated as compromised and rotated, not merely removed.
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+if not GEMINI_API_KEY:
+    raise RuntimeError(
+        "GEMINI_API_KEY is not set. Export it before starting the server:\n"
+        "    export GEMINI_API_KEY='<your key>'\n"
+        "See .env.example. Never commit the value."
+    )
 genai.configure(api_key=GEMINI_API_KEY)
-print(f"✅ Gemini API configured")
+print("✅ Gemini API configured")
 
 # Global model state
 class ModelState:
