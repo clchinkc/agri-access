@@ -131,7 +131,8 @@ def get_openweather_data(latitude, longitude):
     import os
     
     # Try OpenWeatherMap API if API key is available
-    api_key = os.environ.get('OPENWEATHER_API_KEY', '***REMOVED-CREDENTIAL***')
+    # No hard-coded fallback: a committed key is a leaked key. See .env.example.
+    api_key = os.environ.get('OPENWEATHER_API_KEY', '').strip()
     
     if api_key:
         try:
@@ -425,7 +426,18 @@ def generate_gee_satellite_url(collection, lat, lon, bands='B4,B3,B2', min_val=0
     if 'landsat' in collection.lower():
         # Use MapBox satellite imagery with correct coordinates
         zoom = 15
-        return f"https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/{lon},{lat},{zoom}/400x400?access_token=***REMOVED-CREDENTIAL***"
+        # Mapbox's PUBLIC demo token (account "mapbox") used to be inlined here.
+        # It is published in Mapbox's own documentation and is not a secret, but
+        # GitHub push protection flags the token SHAPE regardless of intent — so
+        # it is read from the environment like every other credential.
+        mapbox_token = os.environ.get('MAPBOX_ACCESS_TOKEN', '').strip()
+        if not mapbox_token:
+            raise RuntimeError(
+                "MAPBOX_ACCESS_TOKEN is not set. Export it before starting the server:\n"
+                "    export MAPBOX_ACCESS_TOKEN='<your key>'\n"
+                "See .env.example. Never commit the value."
+            )
+        return f"https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/{lon},{lat},{zoom}/400x400?access_token={mapbox_token}"
     
     # For Sentinel-2, use Planet Labs satellite imagery
     elif 'sentinel' in collection.lower():
